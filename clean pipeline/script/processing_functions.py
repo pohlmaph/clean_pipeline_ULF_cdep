@@ -41,7 +41,7 @@ def get_r(radical,concs,values):
     
     
     get_r.plotdata=[x_opt,y_opt]
-    get_r.fit_report=[rsquare,fit_params,errors,perc]
+    get_r.fit_report={'rsquare': rsquare,'fit_params': fit_params,'errors':errors,'perc': perc}
     
     r = fit_params[0]
     Tx_0 = 1/fit_params[1]
@@ -53,9 +53,12 @@ def get_cc(radical,conc,fnames):
     ex_dF= ex.extract_cwise(' x1',conc,fnames,out=False)
     concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.otherwise c is given by the order of filenames
     
+    
+    
     if radical.find('15N')!=-1: ex_dF2=ex.extract_cwise(' x2',conc,fnames,out=False)
     elif radical.find('14N')!=-1: ex_dF2=ex.extract_cwise(' x3',conc,fnames,out=False)
     else: print(' could not get isotope from radical name: please check radicals[]') 
+    
     
     ccs= [ex_dF2['values'].iloc[x]-ex_dF['values'].iloc[x] for x in range(len(ex_dF2['values']))]
     # friendly reminder: ex_dF is a series object, not a list and has to be accessed respectively
@@ -70,7 +73,13 @@ def get_cc(radical,conc,fnames):
     
     get_cc.center= center
     
-    return ccs,concs
+    #errors
+    
+    errors= [e1+e2 for e1,e2 in zip(ex_dF['dev'],ex_dF2['dev'])]
+    print(errors)
+
+    
+    return ccs,concs,errors
 
 
     

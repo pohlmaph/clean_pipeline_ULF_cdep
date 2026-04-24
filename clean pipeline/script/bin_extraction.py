@@ -34,12 +34,21 @@ def get_radicals(path=False):
     folders= glob(raw_dir+'\\*')
     radicals=[]
     for folder in folders:
+        if '.txt' in folder: continue
         rname=folder[folder.rfind('\\')+1:]
         radicals.append(rname)
     if path==False:    
         return radicals
-    if path==True: 
+    elif path==True: 
         return folders
+    
+def load_single_file(radical=get_radicals()[0]):
+    radical_path=get_radicals(path=True)
+    fnames,concs=load_files(radical)
+    parameters= get_pnames(fnames[0]) 
+    
+    print("parameters:", parameters)
+    return radical_path, fnames, concs,parameters,
 
 def load_files(radical, folder='default'):
     
@@ -72,11 +81,27 @@ def get_pnames(filename):
 
     
     
-def extract_cwise(pname,concs,filenames,out=False):
+def extract_cwise(pname,concs,filenames,out=False,bl_corr=False,save=False):
     #combines values and errors, but only for one parameter at a time
     #args= locals()
     
     data_list = []
+    
+    
+    #extract baseline -duplicate code with pname = baseline
+    
+    if bl_corr==True:
+        
+        bls=[]
+        for file in filenames:
+            dF = pd.read_csv(file,header=0)
+            
+            if ' baseline' in dF.columns:
+                bls.append(dF[' baseline'].values[0])
+                
+            else: print('baseline value was not passed in csv. file')
+                #data_list.append(np.full(len(dF), np.nan))
+        
     
     for file in filenames:
         dF = pd.read_csv(file,header=0)
@@ -98,8 +123,28 @@ def extract_cwise(pname,concs,filenames,out=False):
     # only assign column names if matching
     if len(ex_dF.columns) == 5:
         ex_dF.columns = ['values', 'ubound', 'lbound', 'dev', 'perc']
-    if pname==' P1/2': ex_dF.to_csv(process_dir+ f"\\ex_cwise_P_12.csv",sep='\t')
-    elif pname !=' P_1/2':ex_dF.to_csv(process_dir+ f"\\ex_cwise_{pname}.csv",sep='\t')
+    #___________!!!_____________  
+    
+    
+    ### corrections 
+    
+    #tp90 correction
+    
+    if pname == ' E_max':
+        ex_dF['values']=ex_dF['values']/0.9
+        # It is debatable, if we apply the tp90 correction also for the standard deviation,etc. I chose not to, as I interpret the errors as instrument related and not of sample origin. 
+        
+        
+        #baseline correction by average baseline
+        if bl_corr==True:
+            
+            av=np.average(bls)
+            ex_dF['values'] = [value * b / av for value, b in zip(ex_dF['values'], bls)]
+    
+        
+    if save==True:    
+        if pname==' P1/2': ex_dF.to_csv(process_dir+ f"\\ex_cwise_P_12.csv",sep='\t')
+        elif pname !=' P_1/2':ex_dF.to_csv(process_dir+ f"\\ex_cwise_{pname}.csv",sep='\t')
     
     
     if out==True: print(ex_dF)
@@ -128,3 +173,4 @@ def get_value_dF(filenames,concs,row='values'): # depreciated, but in Line with 
     value_dF.to_csv(process_dir+'\\value_dF.csv',sep='\t')
     
     return value_dF
+
