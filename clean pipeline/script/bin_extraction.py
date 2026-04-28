@@ -139,6 +139,7 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr=False,save=False):
         if bl_corr==True:
             
             av=np.average(bls)
+            
             ex_dF['values'] = [value * b / av for value, b in zip(ex_dF['values'], bls)]
     
         

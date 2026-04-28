@@ -25,7 +25,7 @@ from pathlib import Path
 import os
 #%% all in one param plot. 
 
-def tile_plot_raw(radicals,parameters,spider_colors,old =True): 
+def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'): 
 
 
 # nested loop order is aligned with the spider plots. 
@@ -45,6 +45,9 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True):
     FigC.suptitle('Radical_comp |parameter plot C')
     axesC= axeC.reshape(-1)
     
+    all_axes= list(axesA)+list(axesB)+list(axesC)
+    
+    
     
     P12_plist=[]
     
@@ -53,6 +56,8 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True):
     i=0   
     for param in parameters:
         k=0
+        if i >len(all_axes): break
+        ax= all_axes[i]
         
         for radical in radicals:
             
@@ -61,11 +66,14 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True):
             ## determination of concs has to be automized !
             #done
             # currently the second radical data is just a copy of the first
-            if radical.find('old')!=-1:
+            if radical.find('old')!=-1 and bl_mode!= 'off':
                 blc= True
-                # print( f"baseline_correction enabled for {radical}")
-                if old==False: continue
-            else: blc =False 
+               # print( f"baseline_correction enabled for {radical}")
+                
+                if old==False: continue # omits old data
+            else: blc =False
+            #
+            if bl_mode=='on': blc=True 
             
             ex_dF= ex.extract_cwise(param,conc,fnames,out=False,bl_corr=blc)
             concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
@@ -83,22 +91,22 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True):
                 P12_plist.append([radical,*fit_params, *errors,*perc, rsquare])
                 
             
-        
-            if i<6: 
-                axesA[i].plot(concs,ex_dF['values'],marker='o',color=spider_colors[k],label=radical)
-                axesA[i].set_title(param)
-                axesA[i].set_xlabel('concentration')
-                #axesA[i].set_ylabel(ylabels[i])
+            
+            
+            ax.errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],color=spider_colors[k],label=radical)
+            ax.set_title(param)
+            ax.set_xlabel('concentration')
+            #axesA[i].set_ylabel(ylabels[i])
                 
-            elif i<12:
-                axesB[i-6].plot(concs,ex_dF['values'],marker='o',color=spider_colors[k],label=radical)
-                axesB[i-6].set_title(param)
-                axesB[i-6].set_xlabel('concentration')
-            elif i<18:
-                axesC[i-12].plot(concs,ex_dF['values'],marker='o',color=spider_colors[k],label=radical)
-                axesC[i-12].set_title(param)
-                axesC[i-12].set_xlabel('concentration')
-            else:   break
+            # elif i<12:
+            #     axesA[i].errorbar(concs,ex_dF['values'],yerror= ex_dF['dev'],marker='o',color=spider_colors[k],label=radical)
+            #     axesB[i-6].set_title(param)
+            #     axesB[i-6].set_xlabel('concentration')
+            # elif i<18:
+            #     axesA[i].errorbar(concs,ex_dF['values'],yerror= ex_dF['dev'],marker='o',color=spider_colors[k],label=radical)
+            #     axesC[i-12].set_title(param)
+            #     axesC[i-12].set_xlabel('concentration')
+            # else:   break
             k=k+1
         i=i+1
         
@@ -120,8 +128,9 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True):
 
 
 
-def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,old =False): 
+def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,old =False,bl_mode='old'): 
     
+    print('baseline_mode: '+ bl_mode)
     
     # nested loop order is aligned with the spider plots. 
     # -> the plot takes values of different radicals for one parameter
@@ -148,8 +157,8 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 axesA[i].set_xlabel('concentration')
                 #axesA[i].set_ylabel(ylabels[i])
                 
-                
-                if yerror!=None: axesA[i].errorbar(x,y,yerr=yerror,marker=None,**kwargs)
+                kwargs['marker']=None
+                axesA[i].errorbar(x,y,yerr=yerror,**kwargs)
                     
                 
             elif i<12:
@@ -157,7 +166,8 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 axesB[i-6].set_title(param)
                 axesB[i-6].set_xlabel('concentration')
                 
-                if yerror: axesB[i-6].errorbar(x,y,yerr=yerror,marker=None,**kwargs)
+                kwargs['marker']=None
+                if yerror: axesB[i-6].errorbar(x,y,yerr=yerror,**kwargs)
                 
             # elif i<18:
             #     axesC[i-12].plot(concs,ex_dF['values'],marker='o',color=spider_colors[k],label=radical)
@@ -203,12 +213,15 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
             #print(radical)
             fnames,conc_ul=ex.load_files(radical)
             
-            if radical.find('old')!=-1:
+            if radical.find('old')!=-1 and bl_mode!= 'off':
                 blc= True
                # print( f"baseline_correction enabled for {radical}")
                 
                 if old==False: continue # omits old data
-            else: blc =False 
+            else: blc =False
+            #
+            if bl_mode=='on': blc=True 
+            
             
             
             #Note: conc_ul here is in the order of the filenames- unordered list
@@ -273,7 +286,7 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
                 
                 pit(i,param,x_opt,y_opt,color=spider_colors[k])
-                pit(i,param,concs,ex_dF['values'],linestyle=None,color=spider_colors[k],marker='o')
+                pit(i,param,concs,ex_dF['values'],yerror=ex_dF['dev'],linestyle=None,color=spider_colors[k],marker='o')
                 
                 P12_plist.append([radical,*fit_params, *errors,*perc, rsquare])
                 

@@ -18,9 +18,9 @@ def Enhancement(P,E_max,P_12): # c is not required here, but is not changed to a
 def power_sweep_fit(radical,Plim):
     
     fnames,conc=ex.load_files(radical)
-    ex_dF1= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_corr=False)
+    ex_dF1= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_mode='on')
     concs=list(ex_dF1.index)# This overwrites concs with the sorted list matching the dataframe order.
-    ex_dF2= ex.extract_cwise(' P1/2',conc,fnames,out=False,bl_corr=False)
+    ex_dF2= ex.extract_cwise(' P1/2',conc,fnames,out=False,bl_mode=False)
     
     Fig,axe=subplots(figsize=(16,9))
     
@@ -35,7 +35,7 @@ def power_sweep_fit(radical,Plim):
         
     return None
     
-def fixed_p_plot(radicals,powers,old=False):
+def fixed_p_plot(radicals,powers,old=False,bl_mode='on'):
 
     Fig,axe=subplots(2,3,figsize=(16,9))
     axes=axe.reshape(-1)
@@ -49,16 +49,19 @@ def fixed_p_plot(radicals,powers,old=False):
         ## determination of concs has to be automized !
         #done
         # currently the second radical data is just a copy of the first
-        if radical.find('old')!=-1:
+        if radical.find('old')!=-1 and bl_mode != 'off':
             blc= True
             # print( f"baseline_correction enabled for {radical}")
-            if old==False: continue
-        else: blc =False 
+        else: blc =False
+        
+        if radical.find('old')!=-1 and old==False: continue # omits old data
+            
+        if bl_mode=='on': blc=True 
         
         ex_dF1= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_corr=blc)
         concs=list(ex_dF1.index)# This overwrites concs with the sorted list matching the dataframe order.
         
-        ex_dF2= ex.extract_cwise(' P1/2',conc,fnames,out=False,bl_corr=False)
+        ex_dF2= ex.extract_cwise(' P1/2',conc,fnames,out=False,bl_corr='off')
         for i,ax in enumerate(axes):
             fpvs= Enhancement(powers[i],ex_dF1['values'],ex_dF2['values']) 
             
