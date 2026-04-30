@@ -40,6 +40,7 @@ def fixed_p_plot(radicals,powers,old=False,bl_mode='on'):
     Fig,axe=subplots(2,3,figsize=(16,9))
     axes=axe.reshape(-1)
     
+    Fig.suptitle(str(old)+'|'+bl_mode)
     
     
     for radical in radicals:
@@ -50,13 +51,13 @@ def fixed_p_plot(radicals,powers,old=False,bl_mode='on'):
         #done
         # currently the second radical data is just a copy of the first
         if radical.find('old')!=-1 and bl_mode != 'off':
-            blc= True
+            blc= 'on'
             # print( f"baseline_correction enabled for {radical}")
-        else: blc =False
+        else: blc ='off'
         
         if radical.find('old')!=-1 and old==False: continue # omits old data
             
-        if bl_mode=='on': blc=True 
+        if bl_mode=='on': blc='on' 
         
         ex_dF1= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_corr=blc)
         concs=list(ex_dF1.index)# This overwrites concs with the sorted list matching the dataframe order.
@@ -67,5 +68,6 @@ def fixed_p_plot(radicals,powers,old=False,bl_mode='on'):
             
             ax.plot(concs,fpvs,label= radical,marker='o')
             ax.set_title(str(powers[i])+' W')
+            ax.set_ylim(-200,0)
         axes[0].legend()    
     return   

@@ -81,7 +81,7 @@ def get_pnames(filename):
 
     
     
-def extract_cwise(pname,concs,filenames,out=False,bl_corr=False,save=False):
+def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal=True):
     #combines values and errors, but only for one parameter at a time
     #args= locals()
     
@@ -90,7 +90,7 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr=False,save=False):
     
     #extract baseline -duplicate code with pname = baseline
     
-    if bl_corr==True:
+    if bl_corr!='off':
         
         bls=[]
         for file in filenames:
@@ -136,13 +136,22 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr=False,save=False):
         
         
         #baseline correction by average baseline
-        if bl_corr==True:
+        if bl_corr=='on':
             
             av=np.average(bls)
-            
+             
             ex_dF['values'] = [value * b / av for value, b in zip(ex_dF['values'], bls)]
     
+        if bl_corr=='constant':
+            c=14
+             
+            ex_dF['values'] = [value * b / c for value, b in zip(ex_dF['values'], bls)]
         
+        if signal== True:
+            
+            I_vals= [value * b for value, b in zip(ex_dF['values'], bls)]
+            extract_cwise.I_vals=I_vals
+            
     if save==True:    
         if pname==' P1/2': ex_dF.to_csv(process_dir+ f"\\ex_cwise_P_12.csv",sep='\t')
         elif pname !=' P_1/2':ex_dF.to_csv(process_dir+ f"\\ex_cwise_{pname}.csv",sep='\t')
@@ -150,10 +159,11 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr=False,save=False):
     
     if out==True: print(ex_dF)
     
+    
     return ex_dF
     
     
-def get_value_dF(filenames,concs,row='values'): # depreciated, but in Line with old pipeline
+def get_value_dF(filenames,concs,row='values'): # deprecated, but in Line with old pipeline
     
     #takes: list of filenames and list of respective concentrations
     #takes values for all parameters but returns only values or  upper bound, etc. based on the row keyword

@@ -16,12 +16,16 @@ def gen_short_labels(radicals,old=False):
     
     name_dict= {'Amino-14N-TEMPO_3_26': 'A-14',
                 'Amino-14N-TEMPO_old': 'A-14o',
+                '4-Amino-15N-TEMPO_old':'A-15o',
                 'Oxo-15N-TEMPO_3_26': 'O-15',
                 'Oxo-15N-TEMPO_old': 'O-15o',
+                '4-Hydroxy-14N-TEMPO_old':'OH-14o',
+                '4-Oxo-14N-TEMPO_old':'O-14o',
                 'Hydroxy-14N-TEMPO': 'OH-14N',
                 'Oxo-14N-TEMPO': 'O-14',
                 'Oxo71':'Oxo71',
                 'TEMPO-14N':'H-14',
+                'TEMPO-14N_old': 'H-14o',
                 'TEMPO-15N':'H-14',
                 'Carboxy-14N-Proxyl':'cp-14'}
                 

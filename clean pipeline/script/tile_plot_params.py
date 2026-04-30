@@ -86,16 +86,17 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'):
             
             if param==' P1/2':
                 x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
-                axesA[i].plot(x_opt,y_opt,color=spider_colors[k],alpha=0.5)
+                axesA[i].plot(x_opt,y_opt,alpha=0.5)#color=spider_colors[k]
                 
                 P12_plist.append([radical,*fit_params, *errors,*perc, rsquare])
                 
             
             
             
-            ax.errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],color=spider_colors[k],label=radical)
+            ax.errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],label=radical) #color=spider_colors[k]
             ax.set_title(param)
             ax.set_xlabel('concentration')
+        
             #axesA[i].set_ylabel(ylabels[i])
                 
             # elif i<12:
@@ -119,7 +120,7 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'):
     print('-----P_1/2 fit parameters--------')    
     P12_dF= pd.DataFrame(data=P12_plist,columns=['radical','slope','intercept','m_error','c_error','m_perc','c_perc','rsquare']) 
     print((P12_dF))
-    return
+    return all_axes
 
 #%% tile plot processed
 #prc_params=[' T1', 'T2',' E_max',' P1/2', ]

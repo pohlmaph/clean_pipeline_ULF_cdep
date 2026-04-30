@@ -7,14 +7,19 @@ Created on Tue Apr 28 13:21:56 2026
 import bin_extraction as ex
 import load_default_params as ldp
 
+import pandas as pd
 
-def single_plot(ax,param, radicals,old=True, bl_mode='off'):
+
+def single_plot(ax,param, radicals,old=True, bl_mode='off',number=None,**kwargs):
     
     k=0
     
     ax.set_title('old='+str(old)+'|'+bl_mode)
     ax.set_xlabel('concentration')
     
+    dF=pd.DataFrame()
+    labels=ldp.gen_short_labels(radicals,old=old)
+    print(labels)
     for radical in radicals:
         
         fnames,conc=ex.load_files(radical)
@@ -23,14 +28,16 @@ def single_plot(ax,param, radicals,old=True, bl_mode='off'):
         #done
         # currently the second radical data is just a copy of the first
         if radical.find('old')!=-1 and bl_mode != 'off':
-            blc= True
+            blc= 'on'
             # print( f"baseline_correction enabled for {radical}")
-        else: blc =False
+        else: blc ='off'
+        if bl_mode=='on': blc='on' 
+        if bl_mode=='constant': blc='constant'
         
         if radical.find('old')!=-1 and old==False: continue # omits old data
         
     
-        if bl_mode=='on': blc=True 
+        
         
         
         
@@ -40,11 +47,16 @@ def single_plot(ax,param, radicals,old=True, bl_mode='off'):
                
         
         ax.errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],label=radical)
-        ax.set
+        
+        dF[labels[k]]=ex_dF['values']
+        
+        
+        
         
         
         
         k=k+1
-    ax.legend(loc='lower right')
-        
+    ax.legend(fontsize=8)
+    print(dF) 
+    dF.to_csv('single_plot'+str(number))
     
