@@ -98,7 +98,7 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
         # axes_spider[i].set_theta_offset(pi / 2)
         # axes_spider[i].set_theta_direction(-1)
         
-        axes_spider[i].plot(angles,values,linewidth=4,color=spider_colors[i])
+        axes_spider[i].plot(angles,values,linewidth=4,)#color=spider_colors[i]
         axes_spider[i].set_title(par_names[i], fontsize=24, color=spider_colors[i],pad=40)
         
         axes_spider[i].set_thetagrids([angle*(360/(2*pi))for angle in angles][:-1],short_labels,fontsize=20)

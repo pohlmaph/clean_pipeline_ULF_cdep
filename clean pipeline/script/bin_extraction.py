@@ -90,17 +90,17 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal
     
     #extract baseline -duplicate code with pname = baseline
     
-    if bl_corr!='off':
+    
         
-        bls=[]
-        for file in filenames:
-            dF = pd.read_csv(file,header=0)
+    bls=[]
+    for file in filenames:
+        dF = pd.read_csv(file,header=0)
+        
+        if ' baseline' in dF.columns:
+            bls.append(dF[' baseline'].values[0])
             
-            if ' baseline' in dF.columns:
-                bls.append(dF[' baseline'].values[0])
-                
-            else: print('baseline value was not passed in csv. file')
-                #data_list.append(np.full(len(dF), np.nan))
+        else: print('baseline value was not passed in csv. file')
+            #data_list.append(np.full(len(dF), np.nan))
         
     
     for file in filenames:
@@ -153,8 +153,8 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal
             extract_cwise.I_vals=I_vals
             
     if save==True:    
-        if pname==' P1/2': ex_dF.to_csv(process_dir+ f"\\ex_cwise_P_12.csv",sep='\t')
-        elif pname !=' P_1/2':ex_dF.to_csv(process_dir+ f"\\ex_cwise_{pname}.csv",sep='\t')
+        if pname==' P1/2': ex_dF.to_csv(process_dir+ "\\ex_cwise_P_12.csv",sep='\t')
+        elif pname !=' P_1/2':ex_dF.to_csv(process_dir+ "\\ex_cwise_{pname}.csv",sep='\t')
     
     
     if out==True: print(ex_dF)

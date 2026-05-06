@@ -13,7 +13,7 @@ import single_plot as sp
 from matplotlib.pyplot import subplots
 #%% set user defined initial parameters 
 
-old_glob= False
+old_glob= True
 
 bl_glob='on'
 # 'on','off', or 'old'
@@ -49,15 +49,28 @@ def get_old_radicals(radicals):
     
 old_radicals=get_old_radicals(radicals)
 
+
+def get_new_radicals(radicals):
+    new_radicals=[]
+    for radical in radicals: 
+        
+        if radical.find('old')== -1: 
+            new_radicals.append(radical)
+    return new_radicals
+    
+old_radicals=get_old_radicals(radicals)
+new_radicals=get_new_radicals(radicals)
+
+
 #%% tile plot
 
 prc_params = ['r1','r2','r1bar','r2bar',' P1/2','cc','smaxzeta','lf']
 
 abb=ldp.gen_abbreviations(radicals,old=old_glob)  
 
-axes=tpp.tile_plot_raw(radicals,parameters,ldp.spider_colors,old=old_glob,bl_mode=bl_glob)
-axes[3].set_ylim(-300,0)
-#tpp.tile_plot_prc(radicals,ldp.spider_colors,prc_params=prc_params,abb=abb,old=old_glob,bl_mode=bl_glob)
+#axes=tpp.tile_plot_raw(radicals,parameters,ldp.spider_colors,old=old_glob,bl_mode=bl_glob)
+#axes[3].set_ylim(-300,0)
+tpp.tile_plot_prc(old_radicals,ldp.spider_colors,prc_params=prc_params,abb=abb,old=old_glob,bl_mode=bl_glob)
 
 #import tile_plot_prc_clean as tppc
 #tppc.tile_plot_prc(radicals,spider_colors,prc_params=prc_params,short_labels= ldp.short_labels)
@@ -104,6 +117,10 @@ for ax in axes.reshape(-1)[4:6]:
 import signal_plot as sigp
 
 sigp.signal_plot(radicals, old=False, bl_mode='on')
-
-
+sigp.signal_plot(old_radicals, old=True, bl_mode='on')
+#%% 
+for radical in radicals: 
+    
+    fnames,concs= ex.load_files(radical)
+    print(ex.extract_cwise(' baseline',concs,fnames,out=False,bl_corr='on'))
 
