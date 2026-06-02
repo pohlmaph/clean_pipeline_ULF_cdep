@@ -5,7 +5,7 @@ Created on Tue Mar 17 16:36:00 2026
 @author: marsg
 """
 
-#make this code work from Main.py!!
+
 
 import bin_extraction as ex
 import processing_functions as prc
@@ -25,7 +25,12 @@ from pathlib import Path
 import os
 #%% all in one param plot. 
 
-def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'): 
+#prints three windows with 3x2 tile plots. 
+#Each parameter in the csv files is plotted over concentration. 
+#no processing here, the little fit for P_1/2 is inactivated here
+# console returns you statis
+
+def tile_plot_raw(radicals,parameters,passed_colors,old=True,bl_mode='old'): 
 
 
 # nested loop order is aligned with the spider plots. 
@@ -51,21 +56,21 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'):
     
     P12_plist=[]
     
-    
+    print('----tile_plot_raw-----------')
+    print('baseline_mode: '+ bl_mode)
+    #prints the bl_mode passed to the function-> useful for debugging
     #recheck position!!
     i=0   
     for param in parameters:
         k=0
-        if i >len(all_axes): break
+        if i >= len(all_axes): break
         ax= all_axes[i]
         
         for radical in radicals:
             
-            fnames,conc=ex.load_files(radical)
             
-            ## determination of concs has to be automized !
-            #done
-            # currently the second radical data is just a copy of the first
+            # some conditions that were not ruled globally yet.. 
+            
             if radical.find('old')!=-1 and bl_mode!= 'off':
                 blc= True
                # print( f"baseline_correction enabled for {radical}")
@@ -75,39 +80,33 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'):
             #
             if bl_mode=='on': blc=True 
             
+            
+            #extracts data from multiple csv_files into one single iterable dataFrame: ex_dF
+        
+            fnames,conc=ex.load_files(radical)# loads the file
             ex_dF= ex.extract_cwise(param,conc,fnames,out=False,bl_corr=blc)
             concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
             
-            
+        
             
             
             
                 
-            
-            if param==' P1/2':
-                x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
-                axesA[i].plot(x_opt,y_opt,alpha=0.5)#color=spider_colors[k]
+            # adds a fitted line-> currently deactivated
+            # if param==' P1/2':
+            #     x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
+            #     axesA[i].plot(x_opt,y_opt,alpha=0.5)#color=passed_colors[k]
                 
-                P12_plist.append([radical,*fit_params, *errors,*perc, rsquare])
+            #     P12_plist.append([radical,*fit_params, *errors,*perc, rsquare])
                 
             
+           
+            # This is the plotting line. Note that errorbar also includes the standard line plot associoated with ax.plot
             
-            
-            ax.errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],label=radical) #color=spider_colors[k]
+            ax.errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],label=radical,color=passed_colors[k]) 
             ax.set_title(param)
             ax.set_xlabel('concentration')
-        
-            #axesA[i].set_ylabel(ylabels[i])
-                
-            # elif i<12:
-            #     axesA[i].errorbar(concs,ex_dF['values'],yerror= ex_dF['dev'],marker='o',color=spider_colors[k],label=radical)
-            #     axesB[i-6].set_title(param)
-            #     axesB[i-6].set_xlabel('concentration')
-            # elif i<18:
-            #     axesA[i].errorbar(concs,ex_dF['values'],yerror= ex_dF['dev'],marker='o',color=spider_colors[k],label=radical)
-            #     axesC[i-12].set_title(param)
-            #     axesC[i-12].set_xlabel('concentration')
-            # else:   break
+            
             k=k+1
         i=i+1
         
@@ -115,22 +114,23 @@ def tile_plot_raw(radicals,parameters,spider_colors,old =True,bl_mode='old'):
     axesB[0].legend()
         #axesC[0].legend()
         
-        
-        
-    print('-----P_1/2 fit parameters--------')    
-    P12_dF= pd.DataFrame(data=P12_plist,columns=['radical','slope','intercept','m_error','c_error','m_perc','c_perc','rsquare']) 
-    print((P12_dF))
+          
+    # print('-----P_1/2 fit parameters--------')    
+    # P12_dF= pd.DataFrame(data=P12_plist,columns=['radical','slope','intercept','m_error','c_error','m_perc','c_perc','rsquare']) 
+    # print((P12_dF))
+    
     return all_axes
 
+# by returning the all_axes array you can modify the axes from the console
+
 #%% tile plot processed
-#prc_params=[' T1', 'T2',' E_max',' P1/2', ]
-#prc_params = ['r1','r2',' P1/2','cc','r1bar']
-#corresponding=[' T1',' T2', ' E_max', 'P 1/2', ]
 
 
+# contains a lot of handling functions for any processed parameters. All parameters given in prc_params will be used. 
 
-def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,old =False,bl_mode='old'): 
+def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,old =True,bl_mode='old'): 
     
+    print('----tile_plot prc-----------')
     print('baseline_mode: '+ bl_mode)
     
     # nested loop order is aligned with the spider plots. 
@@ -149,50 +149,30 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
     # FigC,axeC=subplots(2,3,figsize=(16,9))
     # FigC.suptitle('Radical_comp |parameter plot C')
     # axesC= axeC.reshape(-1)
- #_______________________   
-    def pit(i,param,x,y,yerror=None,linestyle='-',**kwargs):#plot in tile
     
-            if i<6: 
-                axesA[i].plot(x,y,**kwargs)
-                axesA[i].set_title(param)
-                axesA[i].set_xlabel('concentration')
-                #axesA[i].set_ylabel(ylabels[i])
-                
-                kwargs['marker']=None
-                axesA[i].errorbar(x,y,yerr=yerror,**kwargs)
-                    
-                
-            elif i<12:
-                axesB[i-6].plot(x,y,**kwargs)
-                axesB[i-6].set_title(param)
-                axesB[i-6].set_xlabel('concentration')
-                
-                kwargs['marker']=None
-                if yerror: axesB[i-6].errorbar(x,y,yerr=yerror,**kwargs)
-                
-            # elif i<18:
-            #     axesC[i-12].plot(concs,ex_dF['values'],marker='o',color=spider_colors[k],label=radical)
-            #     axesC[i-12].set_title(param)
-            #     axesC[i-12].set_xlabel('concentration')
+    all_axes=list(axesA)+list(axesB)
+   
+#_______________________   
+    def pit(ax,param,x,y,yerror=None,linestyle='-',**kwargs):#plot in tile
+        # small handler for gathering all repetitive plotting commands. 
+        # plotting options are available with keywords: 
         
-        # if scatter == True:# exception can be made obsolete by using the linestyle=None keyword
-            
-        #     if i<6: 
-        #         axesA[i].scatter(x,y,**kwargs)
-        #         axesA[i].set_title(param)
-        #         axesA[i].set_xlabel('concentration')
-                
-        #         if yerror: axesA[i].errorbar(x,y,yerr=yerror)
-        #         #axesA[i].set_ylabel(ylabels[i])
-                
-        #     elif i<12:
-        #         axesB[i-6].scatter(x,y,**kwargs)
-        #         axesB[i-6].set_title(param)
-        #         axesB[i-6].set_xlabel('concentration')
-                
-        #         if yerror: axesB[i-6].errorbar(x,y,yerr=yerror)
+        # linestyle=None: turns into scatter plot
+        # marker= 'o': bullet points for markers
+        # yerror = None: takes an array with y errors corresponding to y, usually originating from ex_dF['errors']. 
+        #                default is None, deactivating the errorbars
     
+                
+                ax.set_title(param)
+                ax.set_xlabel('concentration')
+                                
+                kwargs['marker']=None #setting a marker keyword overrides the errorbars. if markers are desired, they can be added by an second ax.scatter command
+                ax.errorbar(x,y,yerr=yerror,**kwargs)
+                #ax.plot(x,y,**kwargs)
+                    # Note that unintuitively ax.errorbar includes not only errorbars but also a standard line plot as expected from ax.plot
 #_____________________________    
+
+
     P12_plist=[]
     r1s=[]
     r2s=[]
@@ -200,35 +180,39 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
     T1_0=[]
     
     
-    # loop over parameters
+    ## loop over parameters
     
-      
     i=0
     for i,param in enumerate(prc_params):
         
         #print('i=',i)
         #print(param)
         if i>11: break
+        ax=all_axes[i]
     
+        if param == 'r1': print('--- these are the r^2-values for the r1 fit---')# this seems random but has to  be exactly in this place to sort conosle output
+        
+        ##loop over radicals
         for k,radical in enumerate(radicals):
             #print(radical)
             fnames,conc_ul=ex.load_files(radical)
             
+            #Note: conc_ul here is in the order of the filenames- i.e. an unordered list
+            #it has to be that way- otherwise filenames and concentrations are not aligned anymore
+            # ordering happens in extract_cwise, when the values extracted from the filenames and concentrations are linked in a dataFrame
+            
+            ## condtions relevant only if bl_mode = 'old':
+              
             if radical.find('old')!=-1 and bl_mode!= 'off':
                 blc= True
                # print( f"baseline_correction enabled for {radical}")
-                
-                if old==False: continue # omits old data
             else: blc =False
-            #
-            if bl_mode=='on': blc=True 
             
+            #if radical.find('old')!=-1 and old==False: continue # omits old data
+            if bl_mode=='on': blc=True
+            else: pass
             
-            
-            #Note: conc_ul here is in the order of the filenames- unordered list
-            #it has to be that way- otherwise filenames and concentrations are not aligned anymore
-            
-            # currently the second radical data is just a copy of the first-> solved 
+
             
             if param == 'r1':
         
@@ -240,12 +224,11 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 #print(ex_dF)
                 r1s.append(r1)
                 x_opt,y_opt= prc.get_r.plotdata
-                print(radical,prc.get_r.fit_report['rsquare'])
+                print(radical,'r^2= ', prc.get_r.fit_report['rsquare'])
                 
-                pit(i,param,x_opt,y_opt,label=radical,color=spider_colors[k],alpha=0.5)
-                pit(i,param,concs,[1/T for T in ex_dF['values']],color=spider_colors[k],marker='o')
-                #axesA[i].plot(x_opt,y_opt,label=radical,color=spider_colors[k],alpha=0.5)
-                #axesA[i].plot(concs,[1/T for T in ex_dF['values']],color=spider_colors[k],marker='o')
+                pit(ax,param,x_opt,y_opt,label=radical,alpha=0.5,color=passed_colors[k]) 
+                pit(ax,param,concs,[1/T for T in ex_dF['values']],marker='o',color=passed_colors[k]) 
+                
                 
                 
             elif param == 'r2':
@@ -259,20 +242,17 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 
                 r2s.append(r2)
                 
-                pit(i,param,x_opt,y_opt,label=radical,color=spider_colors[k],alpha=0.5)
-                pit(i,param,concs,[1/T for T in ex_dF['values']],color=spider_colors[k],marker='o')
+                pit(ax,param,x_opt,y_opt,label=radical,alpha=0.5,color=passed_colors[k])
+                pit(ax,param,concs,[1/T for T in ex_dF['values']],marker='o',color=passed_colors[k])
                 
-                #axesA[i].plot(x_opt,y_opt,label=radical,color=spider_colors[k],alpha=0.5)
-                #axesA[i].plot(concs,[1/T for T in ex_dF['values']],color=spider_colors[k],marker='o')
                 
             elif param == 'r1bar':
                 
-                barloc.append(i)
+                barloc.append(i) # store the location for the bar plot. Basically this corresponds to the position of 'r1bar' in the prc_params list.
                 break
             elif param == 'r2bar':
                 
                 barloc.append(i)
-                
                 break
                       
                 
@@ -286,8 +266,8 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 
                 x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
                 
-                pit(i,param,x_opt,y_opt,color=spider_colors[k])
-                pit(i,param,concs,ex_dF['values'],yerror=ex_dF['dev'],linestyle=None,color=spider_colors[k],marker='o')
+                pit(ax,param,x_opt,y_opt,color=passed_colors[k])
+                pit(ax,param,concs,ex_dF['values'],yerror=ex_dF['dev'],linestyle=None,marker='o',color=passed_colors[k])
                 
                 P12_plist.append([radical,*fit_params, *errors,*perc, rsquare])
                 
@@ -297,7 +277,7 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 if radical.find('Trityl')!=-1: continue
             
                 ccs,concs,errors=prc.get_cc(radical,conc_ul,fnames)# function takes unordered list, sorted concs are returned from the function. processing step takes place in extract_cwise
-                pit(i,param,concs,ccs,yerror=errors,label=radical,color=spider_colors[k])
+                pit(ax,param,concs,ccs,yerror=errors,label=radical,color=passed_colors[k])
                 
                 
             elif param == 'smaxzeta':
@@ -312,7 +292,7 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 E_max=list(ex_dF2['values'])
                 smz=cf.get_smaxzeta(T1s,T1_0,E_max)
                 
-                pit(i,param,concs,smz,label=radical,color=spider_colors[k])
+                pit(ax,param,concs,smz,label=radical,color=passed_colors[k])
                 
                 
             elif param=='lf':
@@ -325,35 +305,61 @@ def tile_plot_prc(radicals,spider_colors,prc_params,short_labels= None,abb=None,
                 
                 lfs=[cf.leakage_factor(T1,T1_0) for T1 in T1s] 
             
-                pit(i,param,concs,lfs,marker='o',color=spider_colors[k],label=radical)
+                pit(ax,param,concs,lfs,marker='o',label=radical,color=passed_colors[k]) 
                 
             
             else: print( 'parameter can not be handled' )
                 
+         
+        ax.set_title(param)  
         
-        if i<6:   axesA[i].set_title(param)  
-        elif i<12: axesB[i-6].set_title(param)
-        
-            
-        
-      
-    axesA[barloc[0]].bar(abb[:len(r1s)],r1s,color=spider_colors[:len(r1s)])
-    axesA[barloc[1]].bar(abb[:len(r1s)],r2s,color=spider_colors[:len(r1s)])
-    #for b in barloc: axesA[b].set_title(param)
-    axesA[0].legend()
-    
-    axesB[1].legend()
-        
-        
+    #loop end    
     
     
-    #axesB[0].legend()
-    #axesC[0].legend()s
+    if abb==None: 
+    
+        abb=ldp.get_abbreviations(radicals)
+    
+    ## create the bar plots 
+    # loop end    
+    
+    # 1. Create a dictionary to assign lists to columns, including colors
+    bar_dF = pd.DataFrame(
+        data={
+            'r1s': r1s, 
+            'r2s': r2s, 
+            'colors': passed_colors[:len(r1s)]
+        }, 
+        index=abb[:len(r1s)]
+    )
+    
+    # 2. Sort the DataFrame by r1s
+    bar_dF = bar_dF.sort_values('r1s')
         
+    # 3. Plot using the newly sorted index, values, and colors
+    all_axes[barloc[0]].bar(bar_dF.index, bar_dF['r1s'], color=bar_dF['colors'])
+    all_axes[barloc[1]].bar(bar_dF.index, bar_dF['r2s'], color=bar_dF['colors'])
+    
+    all_axes[barloc[0]].axhline(bar_dF['r1s']['H-14'],color= bar_dF['colors']['H-14'])
+    all_axes[barloc[1]].axhline(bar_dF['r2s']['H-14'],color= bar_dF['colors']['H-14'])
+    
+    # 4. Rotate labels by 45 degrees and shrink font size slightly (default is usually 10)
+    all_axes[barloc[0]].tick_params(axis='x', rotation=45, labelsize=9)
+    all_axes[barloc[1]].tick_params(axis='x', rotation=45, labelsize=9)
+    
+    all_axes[0].legend()
+    all_axes[7].legend()
+    
+    #axesB[1].legend()
+    
         
+
         
     print('-----P_1/2 fit parameters--------')    
     P12_dF= pd.DataFrame(data=P12_plist,columns=['radical','slope','intercept','m_error','c_error','m_perc','c_perc','rsquare']) 
     print((P12_dF))
     
-    return
+    FigA.tight_layout()
+    FigB.tight_layout()
+    return all_axes
+    # by returning the all_axes array you can modify the axes from the console 

@@ -69,5 +69,5 @@ def fixed_p_plot(radicals,powers,old=False,bl_mode='on'):
             ax.plot(concs,fpvs,label= radical,marker='o')
             ax.set_title(str(powers[i])+' W')
             ax.set_ylim(-200,0)
-        axes[0].legend()    
-    return   
+        axes[5].legend()    
+    return axes

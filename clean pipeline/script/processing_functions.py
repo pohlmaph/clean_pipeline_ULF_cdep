@@ -76,7 +76,7 @@ def get_cc(radical,conc,fnames):
     #errors
     
     errors= [e1+e2 for e1,e2 in zip(ex_dF['dev'],ex_dF2['dev'])]
-    print(errors)
+    #print(errors)
 
     
     return ccs,concs,errors

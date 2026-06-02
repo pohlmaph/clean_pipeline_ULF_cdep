@@ -19,7 +19,7 @@ def single_plot(ax,param, radicals,old=True, bl_mode='off',number=None,**kwargs)
     
     dF=pd.DataFrame()
     labels=ldp.gen_short_labels(radicals,old=old)
-    print(labels)
+    #print(labels)
     for radical in radicals:
         
         fnames,conc=ex.load_files(radical)
@@ -57,6 +57,6 @@ def single_plot(ax,param, radicals,old=True, bl_mode='off',number=None,**kwargs)
         
         k=k+1
     ax.legend(fontsize=8)
-    print(dF) 
-    dF.to_csv('single_plot'+str(number))
+    #print(dF) 
+    #dF.to_csv('single_plot'+str(number))
     

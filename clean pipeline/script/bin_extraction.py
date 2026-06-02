@@ -41,6 +41,52 @@ def get_radicals(path=False):
         return radicals
     elif path==True: 
         return folders
+
+
+    # sorts the data into groups based on conditions
+    # here: to get radicals of the 1st and 2nd generation measurements (1st: 92 uT, 2nd: 700 uT)
+
+def get_old_radicals(radicals):
+    old_radicals=[]
+    for radical in radicals: 
+        
+        if radical.find('old')!= -1: 
+            old_radicals.append(radical)
+    return old_radicals
+    
+
+
+
+def get_new_radicals(radicals):
+    new_radicals=[]
+    for radical in radicals: 
+        
+        if radical.find('old')== -1: 
+            new_radicals.append(radical)
+    return new_radicals
+    
+
+
+def sort_radicals(old,new,radicals):
+    
+    if old==True and new ==False:
+        output= get_old_radicals(radicals)
+        
+        print('used 1st generation datasets')
+        
+    if old==True and new ==True:
+        output= radicals
+        
+        print('used 1st and 2nd generation datasets')
+        
+    if old == False and new==True: 
+        output = get_new_radicals(radicals)
+        
+        print('used 2nd generation datasets')
+        
+    return output
+            
+#%%
     
 def load_single_file(radical=get_radicals()[0]):
     radical_path=get_radicals(path=True)

@@ -19,7 +19,7 @@ def get_smaxzeta(T1s,T1_0,E_max,interpolated=False):# implement interpol later
     for i in range(len(E_max)):
         smaxzeta=(E_max[i]-1)/(-lfs[i]*638.891)
         smz.append(smaxzeta)
-        print(smz)
+        #print(smz)
     
     return smz
 
