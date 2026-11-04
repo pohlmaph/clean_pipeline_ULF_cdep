@@ -1,0 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun May  3 09:52:11 2026
+
+@author: marsg
+"""
+del radicals[radicals.index('4-Oxo-14N-TEMPO')]

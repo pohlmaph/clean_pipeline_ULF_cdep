@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 prc_params = ['r1','r2','r1bar','r2bar',' P1/2','cc','smaxzeta']
 #%% colors 
 
-
+import matplotlib.pyplot as plt
 #getting default maptlotlib colors as filling material
 prop_cycle = plt.rcParams['axes.prop_cycle']
 mpl_colors = prop_cycle.by_key()['color']
@@ -40,6 +40,25 @@ short_labels= ['NH2-14','NH2-15N','Oxo-14N','Oxo-15N', 'TEMPO','Hydroxy']
 
 # old =True keyword is deprecated as skipping radicals causes follow-up problems. if True, it has no effect. 
 
+name_dict= {'Amino-14N-TEMPO_3_26': 'A-14',
+            '4-Amino-14N-TEMPO_old': 'A-14o',
+            '4-Amino-15N-TEMPO_old':'A-15o',
+            'Oxo-15N-TEMPO_3_26': 'O-15',
+            '4-Oxo-15N-TEMPO_old': 'O-15o',
+            '4-Hydroxy-14N-TEMPO_old':'OH-14o',
+            '4-Oxo-14N-TEMPO_old':'O-14o',
+            'Hydroxy-14N-TEMPO': 'OH-14N',
+            '4-Oxo-14N-TEMPO': 'O-14',
+            'Oxo71':'Oxo71',
+            'TEMPO-14N':'H-14',
+            'TEMPO-14N_old': 'H-14o',
+            '14N-TEMPO_old':'H-14o',
+            'TEMPO-15N':'H-14',
+            'Carboxy-14N-Proxyl':'cp-14',
+            '4-Amino-15N-TEMPO':'A-15',
+            '4-Hydroxy-15N-TEMPO':'OH-15',
+            }
+
 def gen_short_labels(radicals,old=True):
     
     name_dict= {'Amino-14N-TEMPO_3_26': 'A-14',
@@ -54,6 +73,7 @@ def gen_short_labels(radicals,old=True):
                 'Oxo71':'Oxo71',
                 'TEMPO-14N':'H-14',
                 'TEMPO-14N_old': 'H-14o',
+                '14N-TEMPO_old':'H-14o',
                 'TEMPO-15N':'H-14',
                 'Carboxy-14N-Proxyl':'cp-14',
                 '4-Amino-15N-TEMPO':'A-15',
@@ -61,7 +81,7 @@ def gen_short_labels(radicals,old=True):
                 
                 
                 }
-                
+    
                 
     
     short_labels=[]
@@ -87,13 +107,13 @@ def gen_abbreviations(radicals,old=True):
                 'Amino-14N-TEMPO_old': 'A-14o',
                 '4-Amino-15N-TEMPO_old':'A-15o',
                 'Oxo-15N-TEMPO_3_26': 'O-15',
-                'Oxo-15N-TEMPO_old': 'O-15o',
+                '4-Oxo-15N-TEMPO_old': 'O-15o',
                 '4-Hydroxy-14N-TEMPO_old':'OH-14o',
                 '4-Oxo-14N-TEMPO_old':'O-14o',
                 'Hydroxy-14N-TEMPO': 'OH-14N',
                 'Oxo-14N-TEMPO': 'O-14',
                 'Oxo71':'Oxo71',
-                'TEMPO-14N':'H-14',
+                '14N-TEMPO':'H-14',
                 'TEMPO-14N_old': 'H-14o',
                 'TEMPO-15N':'H-14',
                 'Carboxy-14N-Proxyl':'cp-14',

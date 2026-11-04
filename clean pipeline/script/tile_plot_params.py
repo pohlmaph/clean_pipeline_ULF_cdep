@@ -54,6 +54,8 @@ def tile_plot_raw(radicals,parameters,passed_colors,old=True,bl_mode='old'):
     
     
     
+    
+    
     P12_plist=[]
     
     print('----tile_plot_raw-----------')
@@ -152,6 +154,10 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     
     all_axes=list(axesA)+list(axesB)
    
+    Fig_cf,axe_cf=subplots(1,3, figsize=(12,4),dpi=300)
+    axe_cf[0].set_title(r'$\mathrm{s_{max}\cdot\zeta}$')
+    axe_cf[1].set_title('leakage factor f')
+    axe_cf[2].set_title(r'$\mathrm{E_{max}}')
 #_______________________   
     def pit(ax,param,x,y,yerror=None,linestyle='-',**kwargs):#plot in tile
         # small handler for gathering all repetitive plotting commands. 
@@ -164,7 +170,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     
                 
                 ax.set_title(param)
-                ax.set_xlabel('concentration')
+                ax.set_xlabel('concentration in mM')
                                 
                 kwargs['marker']=None #setting a marker keyword overrides the errorbars. if markers are desired, they can be added by an second ax.scatter command
                 ax.errorbar(x,y,yerr=yerror,**kwargs)
@@ -179,6 +185,8 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     barloc= []
     T1_0=[]
     
+    T10_mean= cf.get_mean_T10(radicals)[1]
+    print('T10_mean:', T10_mean,sep='\t')
     
     ## loop over parameters
     
@@ -228,7 +236,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                 
                 pit(ax,param,x_opt,y_opt,label=radical,alpha=0.5,color=passed_colors[k]) 
                 pit(ax,param,concs,[1/T for T in ex_dF['values']],marker='o',color=passed_colors[k]) 
-                
+                ax.axhline(1/(cf.get_mean_T10(radicals)[1]))
                 
                 
             elif param == 'r2':
@@ -256,9 +264,6 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                 break
                       
                 
-            #_____ plotted on AxesB[i] from now on  
-            # somewhen implement passing the axis as an object and preselecting it at the beginning of the loop depending on i count.
-            #see chatGPT help
                 
             elif param ==' P1/2':
                 ex_dF= ex.extract_cwise(' P1/2',conc_ul,fnames,out=False)
@@ -290,10 +295,15 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                 
                 ex_dF2=ex.extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc)
                 E_max=list(ex_dF2['values'])
-                smz=cf.get_smaxzeta(T1s,T1_0,E_max)
+                smz=cf.get_smaxzeta(T1s,T1_0,E_max,T10_mean=False,radicals=radicals) #<- T10_mean must be activated here!
                 
+                if radical== '4-Hydroxy-14N-TEMPO_old': 
+                    smz=smz[:4]
+                    concs=concs[:4]
+                    
                 pit(ax,param,concs,smz,label=radical,color=passed_colors[k])
-                
+                pit(axe_cf[0],param,concs,smz,label=radical,color=passed_colors[k])
+                axe_cf[0].scatter(concs,smz,marker='o',color=passed_colors[k],s=3)
                 
             elif param=='lf':
                 
@@ -301,18 +311,44 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                 concs=list(ex_dF.index)
                 
                 T1s=ex_dF['values']
-                T1_0= prc.get_r(radical,concs,ex_dF['values'])[1]
+                #T1_0= prc.get_r(radical,concs,ex_dF['values'])[1]
+                print(radical,'T1_0 =', T10_mean, sep='\t')
+                # deactivated as averaging was implemented
                 
-                lfs=[cf.leakage_factor(T1,T1_0) for T1 in T1s] 
+                
+                lfs=[cf.leakage_factor(T1,T10_mean) for T1 in T1s] # <---- T10_mean ot T10 must be used consistently also here
             
-                pit(ax,param,concs,lfs,marker='o',label=radical,color=passed_colors[k]) 
+                pit(ax,param,concs,lfs,marker='o',label=radical,color=passed_colors[k])
+                pit(axe_cf[1],param,concs,lfs,label=radical,color=passed_colors[k])
+                axe_cf[1].scatter(concs,lfs,marker='o',color=passed_colors[k],s=3)
+                
                 
             
             else: print( 'parameter can not be handled' )
-                
-         
+            
+            ex_dF= ex.extract_cwise(' E_max', conc_ul, fnames,out=False,bl_corr=blc)   
+            concs=list(ex_dF.index)
+            E_max_values=list(ex_dF['values'])
+            
+            if radical== '4-Hydroxy-14N-TEMPO_old': 
+                E_max_values=E_max_values[:4]
+                concs=concs[:4]
+            
+            pit(axe_cf[2],' E_max',concs,E_max_values,label=radical,color=passed_colors[k])
+            axe_cf[2].scatter(concs,E_max_values,marker='o',color=passed_colors[k],s=3)
         ax.set_title(param)  
         
+    
+    
+        
+    axe_cf[0].set_title(r'$\mathrm{s_{max}\cdot\zeta}$')
+    axe_cf[1].set_title('leakage factor f')
+    axe_cf[2].set_title(r'$\mathrm{E_{max}}$')
+    
+    axe_cf[0].set_ylim(0,0.5)
+    axe_cf[1].legend(fontsize=9)
+
+    
     #loop end    
     
     
@@ -361,5 +397,5 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     
     FigA.tight_layout()
     FigB.tight_layout()
-    return all_axes
+    return all_axes,axe_cf
     # by returning the all_axes array you can modify the axes from the console 

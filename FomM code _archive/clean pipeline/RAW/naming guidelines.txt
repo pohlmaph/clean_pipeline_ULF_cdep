@@ -1,0 +1,38 @@
+Sample Folders generate the labels for the whole Pipeline. mind the naming.
+
+-Following the scheme is recommended. If you dont follow you might have to manually define short_labels and abbreviations as labels for the bar and polar plots. (edit the Dictionaries in load_default_params)
+
+
+
+________________
+
+Scheme:
+
+"""""""
+Substituent position- substituent- isotope-Backbone 
+-> as in "4-Amino-14N-TEMPO"
+
+(use uppercase letters)
+
+"""""""""
+
+
+
+	Substituent Position: usually 4 for TEMPO, 3 for cp
+
+	Substituent: 	NH2 = "Amino"
+		=O  = "Oxo"
+		COOH= "Carboxy"
+		OH  = "Hydroxy"
+
+	isotope: "14N" or "15N"
+
+	Backbone: {TEMPO : Tetramethylpiperidin-N-Oxide,
+	  proxyl: pyrrolidin-N-Oxide}  	
+"""""""
+
+exceptions: 
+
+	-For Oxo71 etc. append "Trityl". This facilitates skipping of the calculation of coupling constants for trityls.
+	-
+

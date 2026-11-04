@@ -37,6 +37,7 @@ def get_radicals(path=False):
         if '.txt' in folder: continue
         rname=folder[folder.rfind('\\')+1:]
         radicals.append(rname)
+        radicals.sort()
     if path==False:    
         return radicals
     elif path==True: 

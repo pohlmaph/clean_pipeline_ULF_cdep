@@ -20,7 +20,7 @@ def signal_plot(radicals, old=True, bl_mode='off',number=None,**kwargs):
     
     for ax in axes: 
         ax.set_xlabel('concentration')
-        ax.set_xlim(1,8)
+        ax.set_xlim(0,8)
     dF=pd.DataFrame()
     labels=ldp.gen_short_labels(radicals,old=old)
     

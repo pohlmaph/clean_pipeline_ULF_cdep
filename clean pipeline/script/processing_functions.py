@@ -7,6 +7,7 @@ Created on Fri Mar 20 07:13:21 2026
 from scipy.stats import linregress
 import numpy as np
 import bin_extraction as ex
+from matplotlib.pyplot import subplots
 
 def lin_fit(xdata,ydata):
 
@@ -26,25 +27,41 @@ def lin_fit(xdata,ydata):
    def lin_func(x,m,c):
        y=m*x+c
        return y
+   lin_fit.lin_func=lin_func
    
-   x_opt= np.linspace(xdata[0],xdata[-1])
+   x_opt= np.linspace(min(np.abs(xdata)),max(np.abs(xdata)))
    y_opt= lin_func(x_opt,*fit_params)
    
    return x_opt,y_opt,fit_params,errors,perc,rsquare
 
 
-def get_r(radical,concs,values):
+def get_r(radical,concs,values,plot=False,exclude=None):
     
     T_inv= [1/value for value in values]
     
-    x_opt,y_opt,fit_params,errors,perc,rsquare = lin_fit(concs,T_inv)
-    
+    if exclude != None:
+        x_opt,y_opt,fit_params,errors,perc,rsquare = lin_fit(concs[:exclude],T_inv[:exclude])
+    else: 
+        x_opt,y_opt,fit_params,errors,perc,rsquare = lin_fit(concs,T_inv)
     
     get_r.plotdata=[x_opt,y_opt]
     get_r.fit_report={'rsquare': rsquare,'fit_params': fit_params,'errors':errors,'perc': perc}
     
-    r = fit_params[0]
+    r = fit_params[0]*1000# in 1/s* mM
     Tx_0 = 1/fit_params[1]
+    
+    if plot==True:
+        fig,axe=subplots(figsize=(16,9))
+        fig.suptitle(radical)
+        
+        axe.scatter(concs,T_inv, label='1/T1'+' r^2= '+str(rsquare) )
+        
+        axe.plot(x_opt,y_opt)
+        axe.set_ylabel(r'$1/T1 in \frac{1}{ms*mM}$' )
+        
+        axe.legend()
+        
+        
     
     return r,Tx_0,perc
 

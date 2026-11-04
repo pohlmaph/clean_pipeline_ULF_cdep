@@ -6,10 +6,13 @@ Created on Mon Mar 23 18:19:52 2026
 """
 
 import bin_extraction as ex
-
+import pandas as pd
 from matplotlib.pyplot import subplots
 import numpy as np
 from math import pi
+import processing_functions as prc
+
+#import Chatgpt_heatmap as chm
 #%% spider plots
 
 #TODO
@@ -39,15 +42,17 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
     Fig_spider.suptitle('individual parameter values normalized to TEMPO',fontsize=25)
     
     
-    Fig_spider_2,axe_spider_2= subplots(figsize=(10,10),subplot_kw={'projection': 'polar'}) 
+    Fig_spider_2,axe_spider_2= subplots(figsize=(10,10),subplot_kw={'projection': 'polar'},dpi=300) 
     Fig_spider_2.suptitle('Parameter values normalized to TEMPO ',fontsize=25)
     
     
-    
+    long_names=[radical[:-4] for radical in radicals]
     
     polygons= sel_params# polygons representing one parameter
     N = len(radicals)
-    labels= radicals
+    
+    long_names[3]='4-Hydroxy-\n14N-TEMPO'
+    labels= long_names
     
     
     angles= [2*pi*n/N for n in np.linspace(0,N,N,endpoint=False)]
@@ -68,11 +73,12 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
     
     
     
-    
+    dF=pd.DataFrame(index=short_labels)
     i=0
     for polygon in polygons:
         k=0
         values=[]
+        
         for radical in radicals:
             
             
@@ -83,20 +89,33 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
             ex_dF= ex.extract_cwise(polygon,conc,fnames,out=False)
             concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
             
-            #exception until r1 is correctly implemented  
-            if polygon==' T1': values.append(1/(ex_dF['values'].loc[2.0]))
+            
+            #exception until r1 is correctly implemented  -> updated!
+            if polygon==' T1': 
+                
+                #exception until r1 is correctly implemented  !!!!
+                #values.append(1/(ex_dF['values'].loc[2.0]))
+            
+                r1,T1_0,perc= prc.get_r(radical,concs,ex_dF['values'])
+                values.append(r1)
                 
             else: values.append(ex_dF['values'].loc[2.0])
+            
+            
             k=k+1
         values.append(values[0])# duplicate first item to close the circle (specialty of polar plots )
         
         if absolute == False: 
-            values=[value/values[norm_to] for value in values]
-             
+            values_norm=[value/values[norm_to-1] for value in values]
+        
+        dF[polygon]=values_norm[:-1]
+       # print(dF)
+        
+                
         
         # Erste Achse nach oben
-        # axes_spider[i].set_theta_offset(pi / 2)
-        # axes_spider[i].set_theta_direction(-1)
+        #axes_spider[i].set_theta_offset(pi / 2)
+        #axes_spider[i].set_theta_direction(-1)
         
         axes_spider[i].plot(angles,values,linewidth=4,)#color=spider_colors[i]
         axes_spider[i].set_title(par_names[i], fontsize=24, color=spider_colors[i],pad=40)
@@ -117,42 +136,45 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
         # all in one plot
         
         #has to be normalized anyway
-        values_norm= [value/values[-3] for value in values]
+        values_norm= [value/values[norm_to-1] for value in values]
         axe_spider_2.plot(angles,values_norm, label=par_names[i],linewidth=3, color=spider_colors[i])
-        axe_spider_2.set_thetagrids([angle*(360/(2*pi))for angle in angles][:-1],labels,fontsize=20)
+        axe_spider_2.set_thetagrids([angle*(360/(2*pi)) for angle in angles][:-1],labels,fontsize=20)
         axe_spider_2.tick_params(axis='x', pad=40) 
         
-        # labels_obj = axe_spider_2.get_xticklabels()
-        # # 1st label left-aligned
-        # labels_obj[0].set_horizontalalignment('left')
-        # # 4th label right-aligned
-        # labels_obj[3].set_horizontalalignment('right')
+        labels_obj = axe_spider_2.get_xticklabels()
+        print(labels_obj)
+        # 1st label left-aligned
+        labels_obj[0].set_horizontalalignment('left')
         
-        # pos0 = labels_obj[0].get_position()
-        # labels_obj[0].set_position((pos0[0], pos0[1] + 0.03))  # outward shift
-        # i=i+1
+        # 4th label right-aligned
+        labels_obj[3].set_horizontalalignment('right')
         
-        # pos3 = labels_obj[3].get_position()
-        # labels_obj[3].set_position((pos3[0], pos3[1] + 0.03))  # outward shift
-    
+        pos0 = labels_obj[0].get_position()
+        labels_obj[0].set_position((pos0[0], pos0[1] + 0.03))  # outward shift
         i=i+1
+        
+        pos3 = labels_obj[3].get_position()
+        labels_obj[3].set_position((pos3[0], pos3[1] + 0.03))  # outward shift
     
+       # #i=i+1 must stay deactivated otherwise i running up causes indexerror
+        
+        #
     
     # Get all radial grid lines for each figure
     #works only for full dataset
     
-    # radial_grids = axe_spider_2.yaxis.get_gridlines()
-    # radial_grids1 = axe_spider.yaxis.get_gridlines()
-    # # Find the gridline corresponding to r = 1
-    # # (gridline order corresponds to tick order)
-    # r_ticks = axe_spider_2.get_yticks()
-    # r_ticks1 = axe_spider.get_yticks()
+    radial_grids = axe_spider_2.yaxis.get_gridlines()
+    #radial_grids1 = axe_spider.yaxis.get_gridlines()
+    # Find the gridline corresponding to r = 1
+    # (gridline order corresponds to tick order)
+    r_ticks = axe_spider_2.get_yticks()
+    #r_ticks1 = axe_spider.get_yticks()
     
-    # for tick_value, gridline in zip(r_ticks, radial_grids):
-    #     if np.isclose(tick_value, 1.0):          # the ring at r = 1
-    #         #gridline.set_color('black')
-    #         gridline.set_linewidth(3)
-    #         break
+    for tick_value, gridline in zip(r_ticks, radial_grids):
+        if np.isclose(tick_value, 1.0):          # the ring at r = 1
+            #gridline.set_color('black')
+            gridline.set_linewidth(3)
+            break
         
     # for tick_value, gridline in zip(r_ticks1, radial_grids1):
     #     if np.isclose(tick_value, 1.0):          # the ring at r = 1
@@ -160,6 +182,9 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
     #         gridline.set_linewidth(3)
     #         break
     
-        
+   #print(dF.shape) 
+    
+    #chm.plot_mosaic_heatmap(dF)
+      
     Fig_spider.tight_layout()
-    axe_spider_2.legend(loc=(0.95,0),fontsize=15)
+    axe_spider_2.legend(loc=(0.95,0.05),fontsize=15)
