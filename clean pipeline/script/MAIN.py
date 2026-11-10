@@ -83,11 +83,18 @@ radicals=ex.sort_radicals(True,False,radicals)# args: old,new,radicals
 old_radicals=ex.get_old_radicals(radicals)
 new_radicals=ex.get_new_radicals(radicals)
 
-#%%
+#%% storage for code lines to remove radicals from the list
+# caution: some downstream functionalities  or T10-averaging require all radicals
+# double check before implementing
+
+
+
 custom_radicals= radicals
 #print("popped:",custom_radicals.pop(custom_radicals.index('4-Amino-14N-TEMPO_old')))
 #print("popped:",custom_radicals.pop(custom_radicals.index('4-Oxo-15N-TEMPO_old')))
 #print("popped:",custom_radicals.pop(custom_radicals.index('4-Hydroxy-14N-TEMPO_old')))
+
+#skip_radicals is  passed to functions which require all radicals for some calculations but skip the given radicals for the final purpose
 
 skip_radicals= ['4-Amino-14N-TEMPO_old','4-Oxo-15N-TEMPO_old','4-Hydroxy-14N-TEMPO_old']
 #skip_radicals= ['4-Amino-15N-TEMPO', '3-Carboxy-14N-Proxyl','Oxo71-Trityl','4-Hydroxy-14N-TEMPO','4-Oxo-15N-TEMPO_3_26',]
@@ -209,9 +216,11 @@ passed_colors=ldp.spider_colors
 #   amino 15: 2174
 #TEMPO : 2290, zeta= 0.33
 
-T10_values={'4-Oxo-14N-TEMPO_old': 2725,
-            '4-Amino-15N-TEMPO_old': 2174,
-            '14N-TEMPO_old':2305}
+T10_values={'4-Oxo-14N-TEMPO_old': 2787.4,#2725,
+            '4-Amino-15N-TEMPO_old': 2764.5,#2174,
+            '14N-TEMPO_old':2683.6}#2305}
+
+c_offset_list=[0,0,0]
 
 #for i,T1_0 in enumerate(numpy.linspace(2300,2320,5)):
 for k,radical in enumerate(list(T10_values.keys())): 
@@ -240,9 +249,10 @@ for k,radical in enumerate(list(T10_values.keys())):
                bl_mode='old',
                radicals=radicals,
                passed_color=passed_colors[k],
-               guess=True,
+               guess=False,
                N_relax =False,
                x_offset=(k)*0.1,
+               c_offset=c_offset_list[k],
                skip_radicals=skip_radicals,
                show_cf=True,
                T10_mean=T10_values[radical], #T10_values[radical]
@@ -320,7 +330,7 @@ import fixed_P_plot as fpp
 # works but needs annotations and experimental scatter plots
 powers=[2,10,30]
 
-fpp.fixed_P_int(radicals,powers,old=False,bl_mode='on')
+fpp.fixed_P_int(['4-Oxo-14N-TEMPO_old'],powers,old=False,bl_mode='on')
 #%%power sweeps
 
 # one plot per radical contaiing each power sweep for all concentrations

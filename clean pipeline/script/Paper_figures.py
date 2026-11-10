@@ -38,16 +38,19 @@ def plot_param(radicals,param,ax,bl_mode='old',title=None,**kwargs):
       
         # This is the plotting line. Note that errorbar also includes the standard line plot associoated with ax.plot
         
-        pit2.pit(ax,param,x,y,yerror=ex_dF['dev'])
+        pit2.pit(ax,title,x,y,yerror=ex_dF['dev'],label=radical[:-4],**kwargs)
         
-#%% 2x1 plot
+#%% 3x1 plot
 
 
-def plot_2x1(radicals):
-    fig,axe= subplots(1,2,figsize=(10,5),dpi=300)
+def plot_3x1(radicals):
+    fig,axe= subplots(1,3,figsize=(12,5),dpi=300)
     
-    plot_param(radicals,' E_max',axe[0],bl_mode='old',title= r'$E_{max}$')
-    plot_param(radicals,' P1/2',axe[1],bl_mode='old',title= r'$P_{1/2}$')
+    plot_param(radicals,' E_max',axe[0],bl_mode='old',title= r'$\mathrm{E_{max}}$')
+    plot_param(radicals,' P1/2',axe[1],bl_mode='old',title= r'$\mathrm{P_{1/2}}$')
+    plot_param(radicals,' b1',axe[2],bl_mode='old',title= 'linewidth')
+    axe[2].legend(fontsize=8)
+    
 
 
         

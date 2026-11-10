@@ -64,28 +64,28 @@ def fit_Emax(radical,isotope=15,N_relax=False,fix_zeta=None,bl_mode='old'):
     y_raw=list(ex_dF2['values'])
     x_raw=concs
     
-    x_raw=x_raw[1:]
-    y_raw=y_raw[1:]
+    x_raw=x_raw[:]
+    y_raw=y_raw[:]
     
     #select smax_zeta predicting function 
     smaxzeta_func=handler(isotope=isotope,N_relax=N_relax,fix_zeta=fix_zeta)
     
-    def E_max_func(c,b,T10,zeta,d):
+    def E_max_func(c,b,T10,zeta):
         
-        #d=-0.5
+        d=0.5
         E_max= smaxzeta_func(c-d,b,zeta)*leakage_factor(T1(c-d),T10)*638.891
         
         return E_max
     
-    lower_bounds=[0,0,-0.4,0]
-    upper_bounds=[10,10000,-0.2,1]
+    lower_bounds=[0,0,-0.4]
+    upper_bounds=[10,2500,-0.2]
     
     if N_relax==True:
         
         lower_bounds=[0,0,-0.4]
         upper_bounds=[10,4000,-0.2]
     
-    params,pcov= curve_fit(E_max_func,x_raw,y_raw,p0=[0.5,2174,-0.35,0.5], bounds=(lower_bounds,upper_bounds)) #2174 [6.62424179 0.33569342]
+    params,pcov= curve_fit(E_max_func,x_raw,y_raw,p0=[0.5,2300,-0.35], bounds=(lower_bounds,upper_bounds)) #2174 [6.62424179 0.33569342]
     
     errors= np.sqrt(np.diag(pcov))
     perc=errors/params

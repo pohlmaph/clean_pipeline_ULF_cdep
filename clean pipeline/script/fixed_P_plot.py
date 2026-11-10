@@ -73,7 +73,7 @@ def E_max_int(radical,out=False,plot=False,bl_mode='old'):
         
         
         
-    return params,concs
+    return params,concs,exp_val
 
 def P_12_int(radical,out=False,bl_mode='old',plot=False):
     
@@ -86,9 +86,10 @@ def P_12_int(radical,out=False,bl_mode='old',plot=False):
     
     x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
     
+    exp_values=ex_dF['values']
     if plot ==True: axe.plot(x_opt,y_opt)
     
-    return fit_params
+    return fit_params,exp_values
     
     
     
@@ -130,7 +131,7 @@ def fixed_p_plot(radicals,powers,old=True,bl_mode='old'):
 
 def fixed_P_int(radicals,powers,old=False,bl_mode='on'):
     
-    Fig,axe=subplots(1,3,figsize=(10,4))
+    Fig,axe=subplots(1,3,figsize=(10,4),sharey=True)
     axes=axe.reshape(-1)
     
     
@@ -139,11 +140,11 @@ def fixed_P_int(radicals,powers,old=False,bl_mode='on'):
         
         print(radical)
         
-        Emax_params,conc=E_max_int(radical,plot= True,bl_mode='old')
+        Emax_params,conc,E_max_raw=E_max_int(radical,plot= True,bl_mode='old')
         print('E_max_fit worked')
         print(radical, Emax_params)
         
-        P_12_params=P_12_int(radical,out=False,bl_mode='old',plot=True)
+        P_12_params,P_12_raw=P_12_int(radical,out=False,bl_mode='old',plot=True)
         print('P_12 fit worked')
         
         c_plot= np.linspace(min(conc),max(conc))
@@ -153,9 +154,22 @@ def fixed_P_int(radicals,powers,old=False,bl_mode='on'):
         
         for i,ax in enumerate(axes):
             E= [Enhancement(powers[i],*pair) for pair in zip(E_max,P_12)]
+            E_raw= [Enhancement(powers[i],*pair) for pair in zip(E_max_raw,P_12_raw)]
         # caution, self built functions cannot handle arrays. use list comprehension.
-            
+        
+            min_idx= E.index(min(E))
+            c_min=c_plot[min_idx]
+            E_min=min(E)
             ax.plot(c_plot,E)
+            ax.scatter(conc,E_raw,label=radical)
+            ax.set_xlabel('concentration in mM',fontsize=10)
+            ax.set_title(str(powers[i])+' W',fontsize=10)
+            
+            ax.vlines(c_min,-145,E_min,linestyle=':',color='orange')
+            ax.set_ylim(-145,0)
+        axes[0].set_ylabel('Enhancement')
+        
+        
         
         
             

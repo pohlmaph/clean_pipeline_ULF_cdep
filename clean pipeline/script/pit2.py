@@ -16,8 +16,8 @@ def pit(ax,param,x,y,yerror=None,linestyle='-',title=None,**kwargs):#plot in til
     #                default is None, deactivating the errorbars
 
             
-            if title: ax.set_title(param)
-            else:     ax.set_title(title)
+            if title: ax.set_title(title)
+            else:     ax.set_title(param)
             
             
             ax.set_xlabel('concentration in mM')

@@ -16,13 +16,14 @@ from scipy.optimize import curve_fit
 
 import pit2 as p2
 
-def handler(isotope=15,N_relax=False,fix_zeta=None):
+def handler(isotope=15,N_relax=False,fix_zeta=None,c_offset=0):
     
     if isotope==15 and N_relax==True:
         def func(c,a,b,zeta):
             if fix_zeta:
                 zeta= fix_zeta
-            smaxzeta=(1-(1/(2+a+(b*c))))*zeta
+            d=c_offset
+            smaxzeta=(1-(1/(2+a+(b*(c-d)))))*zeta
             return smaxzeta
         handler.func=func
         
@@ -31,7 +32,8 @@ def handler(isotope=15,N_relax=False,fix_zeta=None):
          def func(c,a,b,zeta):
              if fix_zeta:
                  zeta= fix_zeta
-             smaxzeta=(1-(2/(3+a+(b*c))))*zeta
+             d=c_offset
+             smaxzeta=(1-(2/(3+a+(b*(c-d)))))*zeta
              return smaxzeta
          handler.func=func
     
@@ -40,7 +42,8 @@ def handler(isotope=15,N_relax=False,fix_zeta=None):
          def func(c,b,zeta):
              if fix_zeta:
                  zeta= fix_zeta
-             smaxzeta=(1-(1/(2+(b*c))))*zeta
+             d=c_offset
+             smaxzeta=(1-(1/(2+(b*(c-d)))))*zeta
              return smaxzeta
          handler.func=func
          
@@ -49,7 +52,8 @@ def handler(isotope=15,N_relax=False,fix_zeta=None):
          def func(c,b,zeta):    
              if fix_zeta:
                  zeta= fix_zeta
-             smaxzeta=(1-(2/(3+(3*b*c))))*zeta
+             d=c_offset
+             smaxzeta=(1-(2/(3+(3*b*(c-d)))))*zeta
              return smaxzeta
          handler.func=func
     
@@ -57,7 +61,22 @@ def handler(isotope=15,N_relax=False,fix_zeta=None):
     
         
 
-def fit_cf(radical,k=None,ax=None,bl_mode='old',radicals=None,passed_color='blue',N_relax=True,guess=True, x_offset=0,skip_radicals=None,show_cf=True,T10_mean=None,label=None,fix_zeta=None,**kwargs):
+def fit_cf(radical,
+           k=None,
+           ax=None,
+           bl_mode='old',
+           radicals=None,
+           passed_color='blue',
+           N_relax=True,
+           x_offset=0,
+           c_offset=0,
+           guess=True,
+           skip_radicals=None,
+           show_cf=True,
+           T10_mean=None,
+           label=None,
+           fix_zeta=None,
+           **kwargs):
     
     if radical in skip_radicals: 
         print(radical+ ' was skipped' )
@@ -105,13 +124,15 @@ def fit_cf(radical,k=None,ax=None,bl_mode='old',radicals=None,passed_color='blue
         
     #cut values for  x mM  -> lazy hard coded implementation    
     if radical== '14N-TEMPO_old': #or '4-Oxo-14N-TEMPO_old'
-        smz=smz[1:-1]
-        concs=concs[1:-1] 
-        
+        smz=smz[:]
+        concs=concs[:] 
+    if radical== '4-Amino-15N-TEMPO_old': #or '4-Oxo-14N-TEMPO_old'
+        smz=smz[1:]
+        concs=concs[1:] 
     else: 
          
-          smz=smz[:-1]
-          concs=concs[:-1]    
+          smz=smz[:]
+          concs=concs[:]    
         
     param='smaxzeta_fit'
     
@@ -124,16 +145,16 @@ def fit_cf(radical,k=None,ax=None,bl_mode='old',radicals=None,passed_color='blue
     #function selection
     
     if radical.find('15N')!= -1:
-        predict_smaxzeta=handler(isotope=15,N_relax=N_relax,fix_zeta=fix_zeta)
+        predict_smaxzeta=handler(isotope=15,N_relax=N_relax,fix_zeta=fix_zeta,c_offset=c_offset)
     elif radical.find('14N')!=-1:
-        predict_smaxzeta=handler(isotope=14,N_relax=N_relax,fix_zeta=fix_zeta)
+        predict_smaxzeta=handler(isotope=14,N_relax=N_relax,fix_zeta=fix_zeta,c_offset=c_offset)
     else: print('isotope could not be determined  from radical name') 
     
     
     
     #plot guess data
     if N_relax==True:
-        guess=[ 0.01, 0.01, 0.31]
+        guess=[ 1, 3, 0.31]
         if fix_zeta:
             guess[-1]==fix_zeta
         lower_bounds = [0,0,0]
@@ -153,7 +174,7 @@ def fit_cf(radical,k=None,ax=None,bl_mode='old',radicals=None,passed_color='blue
     
     params,pcov=curve_fit(predict_smaxzeta, concs, smz,p0=guess,bounds=(lower_bounds,upper_bounds))
         
-    print(T10_mean,params)
+    print(radical,T10_mean,params)
     errors= np.sqrt(np.diag(pcov))
     #(errors)
     perc= errors/params*100
@@ -175,6 +196,7 @@ def fit_cf(radical,k=None,ax=None,bl_mode='old',radicals=None,passed_color='blue
     ax.legend(loc='lower right')
     
     ax.text(9.8,0.27,'estimated\ncoupling\nfactors',fontsize=7,ha='center')
+    print('c_offset: ', c_offset)
     
     return ax, perc
     
