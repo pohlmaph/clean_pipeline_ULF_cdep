@@ -11,6 +11,7 @@ import numpy as np
 import bin_extraction as ex
 import load_default_params as ldp
 import processing_functions as prc
+import coupling_factors as cf
 
 from scipy.optimize import curve_fit
 
@@ -94,7 +95,7 @@ def P_12_int(radical,out=False,bl_mode='old',plot=False):
     
     
     
-def fixed_p_plot(radicals,powers,old=True,bl_mode='old'):
+def fixed_p_plot(radicals,powers,old=True,bl_mode='old',lf_out=False):
 
     Fig,axe=subplots(1,3,figsize=(10,4))
     axes=axe.reshape(-1)
@@ -104,7 +105,7 @@ def fixed_p_plot(radicals,powers,old=True,bl_mode='old'):
     
     for radical in radicals:
         
-        fnames,conc=ex.load_files(radical)
+        fnames,conc_ul=ex.load_files(radical)
         
         
         if radical.find('old')!=-1 and bl_mode != 'off':
@@ -116,14 +117,29 @@ def fixed_p_plot(radicals,powers,old=True,bl_mode='old'):
             
         if bl_mode=='on': blc='on' 
         
-        ex_dF1= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_corr=blc)
+        ex_dF1= ex.extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc)
         concs=list(ex_dF1.index)# This overwrites concs with the sorted list matching the dataframe order.
         
-        ex_dF2= ex.extract_cwise(' P1/2',conc,fnames,out=False,bl_corr='off')
+        ex_dF2= ex.extract_cwise(' P1/2',conc_ul,fnames,out=False,bl_corr='off')
+        
+        ex_dF3= ex.extract_cwise('t_hyp',conc_ul,fnames,out=False)  #T1 at Bp  
+        T1s=ex_dF3['values']
+        T_10=ldp.T10_values[radical]
+        
+        lfs=[cf.leakage_factor(T1,T_10) for T1 in T1s]
+        
+        
+        
         for i,ax in enumerate(axes):
             fpvs= Enhancement(powers[i],ex_dF1['values'],ex_dF2['values']) 
             
-            ax.plot(concs,fpvs,label= radical,marker='o')
+            sz=[]
+            j=0
+            for j in range(len(fpvs)):
+                szeta=(list(fpvs)[j]-1)/(lfs[j]*638.891)
+                sz.append(szeta)
+            if lf_out==False:ax.plot(concs,fpvs,label= radical,marker='o')
+            else:            ax.plot(concs,sz,label= radical,marker='o')
             ax.set_title(str(powers[i])+' W')
             #ax.set_ylim(-200,0)
         axes[2].legend()    
@@ -168,6 +184,7 @@ def fixed_P_int(radicals,powers,old=False,bl_mode='on'):
             ax.vlines(c_min,-145,E_min,linestyle=':',color='orange')
             ax.set_ylim(-145,0)
         axes[0].set_ylabel('Enhancement')
+        axes[0].legend(fontsize=8)
         
         
         

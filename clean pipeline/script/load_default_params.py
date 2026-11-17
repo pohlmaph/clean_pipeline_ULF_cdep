@@ -6,6 +6,19 @@ Created on Tue Mar 24 08:32:24 2026
 
 """
 import matplotlib.pyplot as plt
+
+#%%
+T10_values={'4-Oxo-14N-TEMPO_old': 2787.4,#2725,
+            '4-Oxo-14N-TEMPO': 2787.4,
+            '4-Amino-15N-TEMPO_old': 2764.5,#2174,
+            '14N-TEMPO_old':2683.6,
+            '14N-TEMPO':2683.6,
+            '4-Amino-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
+            '4-Amino-15N-TEMPO': 2764.5,
+            '4-Hydroxy-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
+            '4-Oxo-15N-TEMPO_old':2764.5} # same as Amino-15N-TEMPO #2305}
+
+
 #%% standard user input lists 
 prc_params = ['r1','r2','r1bar','r2bar',' P1/2','cc','smaxzeta']
 #%% colors 
@@ -113,9 +126,10 @@ def gen_abbreviations(radicals,old=True):
                 'Hydroxy-14N-TEMPO': 'OH-14N',
                 'Oxo-14N-TEMPO': 'O-14',
                 'Oxo71':'Oxo71',
-                '14N-TEMPO':'H-14',
+                'TEMPO-14N':'H-14',
                 'TEMPO-14N_old': 'H-14o',
-                'TEMPO-15N':'H-14',
+                '14N-TEMPO_old':'H-14o',
+                'TEMPO-15N':'H-15',
                 'Carboxy-14N-Proxyl':'cp-14',
                 '4-Amino-15N-TEMPO':'A-15',
                 '4-Hydroxy-15N-TEMPO':'OH-15',
@@ -128,7 +142,6 @@ def gen_abbreviations(radicals,old=True):
     for radical in radicals:
         for name in name_dict:
             if name in radical:
-                if old ==False and name.find('old')!=-1: break
                 abbreviations.append(name_dict[name])
                 break
         else:

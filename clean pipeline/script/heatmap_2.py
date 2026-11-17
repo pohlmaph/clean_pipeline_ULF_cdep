@@ -42,15 +42,24 @@ def generate_dF(radicals, short_labels, sel_params=[' E_max', ' P1/2', ' b1', ' 
             # Dynamic exclusion rule lookup
             exclude_val = exclude_rules.get(radical, None)
             
+            
             if param in [' T1', ' T2']: 
                 r_val, _, _ = prc.get_r(radical, concs, ex_dF['values'], plot=False, exclude=exclude_val)
                 values_abs.append(r_val)
             else: 
                 values_abs.append(ex_dF['values'].loc[target_conc])
+                
+            # if radical in ['4-Hydroxy-14N-TEMPO_old','4-Amino-14N-TEMPO_old'] and param==' E_max':
+            #     values_abs[-1]=None
         
         # Scale dynamically based on norm_to index
         baseline_val = values_abs[norm_to]
-        values_norm = [value / baseline_val for value in values_abs]
+        def norm(value,baseline_val):
+            if value: norm=value/baseline_val
+            else: norm=None
+            return norm
+            
+        values_norm = [norm(value,baseline_val) for value in values_abs]
         
         dF_norm[param] = values_norm
         dF_abs[param] = values_abs
@@ -74,7 +83,8 @@ def plot_mosaic_heatmap(
     norm_y_offset=0.18,
     abs_y_offset=-0.12,
     norm_fontsize=7,
-    abs_fontsize=8
+    abs_fontsize=8,
+    target_conc=2,
 ):
     """
     Plot a scalable mosaic-style heatmap.
@@ -175,7 +185,7 @@ def plot_mosaic_heatmap(
 
     if absolute:
         fig.suptitle(
-            "Experimental parameter values at 2 mM",
+            f"Experimental parameter values at {str(target_conc)} mM",
             x=0.45,
             ha="center"
         )

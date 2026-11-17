@@ -42,7 +42,7 @@ import load_default_params as ldp
 import tile_plot_params as tpp
 import single_plot as sp
 import numpy 
-
+import pandas 
 
 
 
@@ -90,9 +90,9 @@ new_radicals=ex.get_new_radicals(radicals)
 
 
 custom_radicals= radicals
-#print("popped:",custom_radicals.pop(custom_radicals.index('4-Amino-14N-TEMPO_old')))
-#print("popped:",custom_radicals.pop(custom_radicals.index('4-Oxo-15N-TEMPO_old')))
-#print("popped:",custom_radicals.pop(custom_radicals.index('4-Hydroxy-14N-TEMPO_old')))
+# print("popped:",custom_radicals.pop(custom_radicals.index('4-Amino-14N-TEMPO_old')))
+# print("popped:",custom_radicals.pop(custom_radicals.index('4-Oxo-15N-TEMPO_old')))
+# print("popped:",custom_radicals.pop(custom_radicals.index('4-Hydroxy-14N-TEMPO_old')))
 
 #skip_radicals is  passed to functions which require all radicals for some calculations but skip the given radicals for the final purpose
 
@@ -103,11 +103,13 @@ skip_radicals= ['4-Amino-14N-TEMPO_old','4-Oxo-15N-TEMPO_old','4-Hydroxy-14N-TEM
 #     if radical.find('14N') !=-1:
 #         print(radicals.pop(radicals.index(radical)))
 #print("popped:",custom_radicals.pop(radicals.index('4-Hydroxy-14N-TEMPO_old')))
+
+custom_radicals=['4-Oxo-14N-TEMPO','4-Amino-15N-TEMPO','14N-TEMPO']
 #%%
 #radicals=custom_radicals
 print('radicals:',radicals)
 print('concs:', concs )
-
+print('skipped: ', skip_radicals)
 #radicals=radicals
 
 #radicals=['Oxo71-Trityl']
@@ -120,10 +122,11 @@ print('concs:', concs )
 #%% tile plot
 
 #!! caution !! T1_0_ maan was deactivated in the script!!
+#fixed
 
 prc_params = ['r1','r2','r1bar','r2bar',' P1/2','cc','smaxzeta','lf']
 # 1/T1,2 plots,  relaxivities as bar plots, P_1,2(c), coupling factors multiplied with s_max, leakage factor, 
-abb=ldp.gen_abbreviations(radicals)  
+#abb=ldp.gen_abbreviations(radicals)  
 # the names in radicals are too long for plot names. This method generates short abbreviations from the radical names. 
 #
 
@@ -134,7 +137,7 @@ axes_raw=tpp.tile_plot_raw(radicals,parameters,ldp.spider_colors,old=True,bl_mod
 #axes[3].set_ylim(-300,0)
 
 #plots a bunch of processed parameters given by prc_params
-axes_prc=tpp.tile_plot_prc(radicals,ldp.spider_colors,prc_params=prc_params,abb=abb,old=True,bl_mode=bl_glob)
+axes_prc=tpp.tile_plot_prc(radicals,ldp.spider_colors,prc_params=prc_params,abb=None,old=True,bl_mode=bl_glob)
 
 axes_prc[1][0].set_xlim(0,8)
 axes_prc[1][1].set_xlim(0,8)
@@ -173,16 +176,17 @@ import heatmap_2 as hm
 #short_labels=ldp.gen_short_labels(radicals,old=True)
 
 long_names=[radical[:-4] for radical in radicals]
-dF_abs,dF_norm=hm.generate_dF(radicals,long_names,sel_params=[' E_max', ' P1/2',' b1', ' T1',' T2'], norm_to= 0)
+dF_abs,dF_norm=hm.generate_dF(radicals,long_names,sel_params=[' E_max', ' P1/2',' b1', ' T1',' T2'], norm_to= 0,target_conc=2)
 hm.plot_mosaic_heatmap(dF_abs,dF_norm,
                        absolute=True,
+                       target_conc=2,
                        cmap="coolwarm",
                        figsize=None,#
                        show_values=True,
                        fmt_norm=".3g",
                        fmt_abs=".3g",
-                       vmin=0.8,
-                       vmax=1.2,
+                       vmin=0.7,
+                       vmax=1.3,
                        par_names=[r'$\mathrm{E_{max}}$',r'$\mathrm{P_{1/2}}$','b1',r'$\mathrm{r_1}$',r'$\mathrm{r_2}$']
                        )
 # print(dF_abs)
@@ -207,8 +211,14 @@ ccp.cc_plot(radicals)
 
 import fit_cf as fcf
 
+radical_selection=['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]
+
 Fig,axe=subplots(figsize=(9,5),dpi=300)
-#axes=axe.reshape(-1)
+Fig2,axe2=subplots(figsize=(9,5),dpi=300)
+Fig2.suptitle('saturation factors')
+
+Fig3,axes3= subplots(1,3,figsize=(12,4), dpi=300,sharey=True)
+axes3=axes3.reshape(-1)
 
 passed_colors=ldp.spider_colors
 
@@ -218,34 +228,25 @@ passed_colors=ldp.spider_colors
 
 T10_values={'4-Oxo-14N-TEMPO_old': 2787.4,#2725,
             '4-Amino-15N-TEMPO_old': 2764.5,#2174,
-            '14N-TEMPO_old':2683.6}#2305}
+            '14N-TEMPO_old':2683.6,
+            '4-Amino-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
+            '4-Hydroxy-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
+            '4-Oxo-15N-TEMPO_old':2764.5} # same as Amino-15N-TEMPO #2305}
+
+#alternative location, both working
+#T10_values= ldp.T10_values 
 
 c_offset_list=[0,0,0]
 
-#for i,T1_0 in enumerate(numpy.linspace(2300,2320,5)):
-for k,radical in enumerate(list(T10_values.keys())): 
-    #Fig,axe=subplots(figsize=(16,9))
-    
-    #label='Nitrogen relaxtion inactive'
-    #label='Nitrogen relaxtion active'
-    # fcf.fit_cf(radical,
-    #            k=None,
-    #            ax=axe,
-    #            bl_mode='old',
-    
-    #            radicals=radicals,
-    #            passed_color=passed_colors[i],
-    #            guess=False,
-    #            label=str(T1_0)+' N_relax True',
-    #            N_relax =True,
-    #            x_offset=k*0.1,
-    #            skip_radicals=skip_radicals,
-    #            show_cf=True,
-    #            T10_mean=T1_0)
+
+for k,radical in enumerate(radical_selection): 
 
     fcf.fit_cf(radical,
                k=None,
                ax=axe,
+               ax2=axe2,
+               ax3=axes3[k],
+               Power=2,
                bl_mode='old',
                radicals=radicals,
                passed_color=passed_colors[k],
@@ -256,8 +257,10 @@ for k,radical in enumerate(list(T10_values.keys())):
                skip_radicals=skip_radicals,
                show_cf=True,
                T10_mean=T10_values[radical], #T10_values[radical]
+               T1_field = 't_hyp',
                fix_zeta=None,
-               label=radical+r' |$T_{1,0} = $'+str(T10_values[radical])+' ms')#radical+r' |$T_{1,0} = $'+str(T10_values[radical])+' ms'
+               label=radical[:-4]#radical+r' |$T_{1,0} = $'+str(T10_values[radical])+' ms'
+               )
     
 #%% find T_10
 
@@ -319,18 +322,18 @@ powers=[2,10,30]
 
 #fpp.fixed_p_plot(old_radicals,powers,bl_mode='on')
 #fpp.fixed_p_plot(new_radicals,powers,bl_mode='on')
-radicals=['4-Oxo-14N-TEMPO']
-axes_fp=fpp.fixed_p_plot(radicals,powers,bl_mode='old',old=True)
 
-axes_fp[0].set_ylim(-60,0) #just an experience value 
+axes_fp=fpp.fixed_p_plot(['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old'],powers,bl_mode='old',lf_out=False)
+
+#axes_fp[0].set_ylim(-60,0) #just an experience value 
 
 #%% fpp interpolated 
 import fixed_P_plot as fpp
 
-# works but needs annotations and experimental scatter plots
+
 powers=[2,10,30]
 
-fpp.fixed_P_int(['4-Oxo-14N-TEMPO_old'],powers,old=False,bl_mode='on')
+fpp.fixed_P_int(['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old'],powers,old=False,bl_mode='on')#['4-Oxo-14N-TEMPO_old']
 #%%power sweeps
 
 # one plot per radical contaiing each power sweep for all concentrations
@@ -362,12 +365,28 @@ import signal_plot as sigp
 sigp.signal_plot(old_radicals, bl_mode='on')
 
 #%% print ex_dF for all radicals
-for radical in ['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]: 
+for radical in ['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]: #['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]: 
     
     fnames,concs= ex.load_files(radical)
-    dF= ex.extract_cwise(' x1',concs,fnames,out=False,bl_corr='on')
-    print(radical)
-    print('x1= '+str(dF['values'].loc[2.0]))
+    dF= ex.extract_cwise(' P1/2',concs,fnames,out=False,bl_corr='on')
+    print(radical, dF['values'].loc[1.0])
+    
+    
+    # dF2=ex.extract_cwise(' T1',concs,fnames,out=False,bl_corr='on')
+    # #print(dF['values'],dF2['values'])
+    
+    # delta= dF['values']/dF2['values']
+    
+    # data={'t_hyp': dF['values'], 
+    #       'T1': dF2['values'],
+    #       'delta': delta
+    #       }
+    
+    # dF_show=pandas.DataFrame(data=data)
+    # print(dF_show)
+    
+    
+#    print('x1= '+str(dF['values'].loc[2.0]))
     
 #%% 3D plot using plotly
 

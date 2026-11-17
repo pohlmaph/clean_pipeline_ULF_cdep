@@ -291,11 +291,18 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                 concs=list(ex_dF.index)
                 
                 T1s=ex_dF['values']
-                T1_0= prc.get_r(radical,concs,ex_dF['values'])[1]
+                
+                #deprecated: gets T_1,0 as the fit offset from fit
+                #replaced by either averaging the fit offset over all radicals or measured values (recommended)
+                #T1_0= prc.get_r(radical,concs,ex_dF['values'])[1]
+                
+                if radical in list(ldp.T10_values.keys()):
+                    T1_0_exp= ldp.T10_values[radical]
+                #else: continue
                 
                 ex_dF2=ex.extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc)
                 E_max=list(ex_dF2['values'])
-                smz=cf.get_smaxzeta(T1s,T1_0,E_max,T10_mean=False,radicals=radicals) #<- T10_mean must be activated here!
+                smz=cf.get_smaxzeta(T1s,T1_0_exp,E_max,T10_mean=False,radicals=radicals) #<- T10_mean must be activated here!
                 
                 if radical== '4-Hydroxy-14N-TEMPO_old': 
                     smz=smz[:4]
@@ -311,12 +318,20 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                 concs=list(ex_dF.index)
                 
                 T1s=ex_dF['values']
+                
+                #deprecated, use T_10_exp instead
                 #T1_0= prc.get_r(radical,concs,ex_dF['values'])[1]
-                print(radical,'T1_0 =', T10_mean, sep='\t')
+                
+                if radical in list(ldp.T10_values.keys()):
+                    T1_0_exp= ldp.T10_values[radical]
+                #else: continue
+                print(radical,'T1_0_mean =', T10_mean, sep='\t')
+                print(radical,'T1_0_exp =', T1_0_exp, sep='\t')
                 # deactivated as averaging was implemented
                 
                 
-                lfs=[cf.leakage_factor(T1,T10_mean) for T1 in T1s] # <---- T10_mean ot T10 must be used consistently also here
+                
+                lfs=[cf.leakage_factor(T1,T1_0_exp) for T1 in T1s] # <---- T10_mean ot T10 must be used consistently also here
             
                 pit(ax,param,concs,lfs,marker='o',label=radical,color=passed_colors[k])
                 pit(axe_cf[1],param,concs,lfs,label=radical,color=passed_colors[k])
@@ -354,7 +369,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     
     if abb==None: 
     
-        abb=ldp.get_abbreviations(radicals)
+        abb=ldp.gen_abbreviations(radicals)
     
     ## create the bar plots 
     # loop end    
@@ -368,6 +383,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
         }, 
         index=abb[:len(r1s)]
     )
+    print( bar_dF)
     
     # 2. Sort the DataFrame by r1s
     bar_dF = bar_dF.sort_values('r1s')
@@ -376,8 +392,14 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     all_axes[barloc[0]].bar(bar_dF.index, bar_dF['r1s'], color=bar_dF['colors'])
     all_axes[barloc[1]].bar(bar_dF.index, bar_dF['r2s'], color=bar_dF['colors'])
     
-    all_axes[barloc[0]].axhline(bar_dF['r1s']['H-14'],color= bar_dF['colors']['H-14'])
-    all_axes[barloc[1]].axhline(bar_dF['r2s']['H-14'],color= bar_dF['colors']['H-14'])
+    if 'H-14' in radicals:
+        all_axes[barloc[0]].axhline(bar_dF['r1s']['H-14'],color= bar_dF['colors']['H-14'])
+        all_axes[barloc[1]].axhline(bar_dF['r2s']['H-14'],color= bar_dF['colors']['H-14'])
+    elif 'H-14o' in radicals:
+        all_axes[barloc[0]].axhline(bar_dF['r1s']['H-14o'],color= bar_dF['colors']['H-14o'])
+        all_axes[barloc[1]].axhline(bar_dF['r2s']['H-14o'],color= bar_dF['colors']['H-14o'])
+    else: print('reference radical in T1/T2 bar plots could not be generated. H-14 or H-14o were not found. deactivate this line to get default error log' )
+        
     
     # 4. Rotate labels by 45 degrees and shrink font size slightly (default is usually 10)
     all_axes[barloc[0]].tick_params(axis='x', rotation=45, labelsize=9)
