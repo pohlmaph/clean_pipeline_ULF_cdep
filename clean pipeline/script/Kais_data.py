@@ -42,8 +42,8 @@ def plot_pool_data(radicals,bl_mode='old'):
     
     dF=pd.read_csv(filename)
     
-    print(dF)
-    print(dF.columns)
+    #print(dF)
+    #print(dF.columns)
     
     Fig,axe=subplots(figsize=(16,9),dpi=300)
     Fig2,axe2=subplots(figsize=(16,9),dpi=300)
@@ -89,14 +89,7 @@ def plot_pool_data(radicals,bl_mode='old'):
         
         # some conditions that were not ruled globally yet.. 
         
-        if radical.find('old')!=-1 and bl_mode!= 'off':
-            blc= True
-           # print( f"baseline_correction enabled for {radical}")
-            
-            #if old==False: continue # omits old data
-        else: blc =False
-        #
-        if bl_mode=='on': blc=True 
+        
         
         if radical.find('15N') != -1: color='purple'
         else: color ='red'
@@ -108,17 +101,17 @@ def plot_pool_data(radicals,bl_mode='old'):
         #extracts data from multiple csv_files into one single iterable dataFrame: ex_dF
     
         fnames,conc_ul=ex.load_files(radical)# loads the file
-        ex_dF= ex.extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc)
+        ex_dF= ex.get_Emax(radical,bl_mode=bl_mode)
         concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
         
-        print(ex_dF.columns) 
+        #print(ex_dF.columns) 
         
         y= ex_dF['values'].loc[2.0]
         x=mass_dict[radical]
         yerr= ex_dF['dev'].loc[2.0]
         xerr=None
         
-        print(yerr)
+        #print(yerr)
         
         axe[0].scatter(x,y,color=color,s=30)
         axe[0].text(x,y+2,ldp.name_dict[radical] ,color=color)
@@ -129,13 +122,13 @@ def plot_pool_data(radicals,bl_mode='old'):
         
         #axe1
         
-        lw_dF= ex.extract_cwise(' b1',conc_ul,fnames,out=False,bl_corr=blc)
+        lw_dF= ex.extract_cwise(' b1',conc_ul,fnames,out=False,bl_corr='on')
         concs=list(lw_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
         
-        P12_dF= ex.extract_cwise(' P1/2',conc_ul,fnames,out=False,bl_corr=blc)
+        P12_dF= ex.extract_cwise(' P1/2',conc_ul,fnames,out=False,bl_corr='on')
         concs=list(P12_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
         
-        # the lw values are in units of the sweep variable (correction factor= 1.464)
+        # the lw values are in units of the sweep variable (correction factor= 1.548)
         x=lw_dF['values'].loc[2.0]*1000/1.548
         y=P12_dF['values'].loc[2.00]
         

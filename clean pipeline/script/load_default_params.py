@@ -16,7 +16,8 @@ T10_values={'4-Oxo-14N-TEMPO_old': 2787.4,#2725,
             '4-Amino-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
             '4-Amino-15N-TEMPO': 2764.5,
             '4-Hydroxy-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
-            '4-Oxo-15N-TEMPO_old':2764.5} # same as Amino-15N-TEMPO #2305}
+            '4-Oxo-15N-TEMPO_old':2764.5,# same as Amino-15N-TEMPO #2305
+            'Oxo71-Trityl':2787.4,} # same as Amino-15N-TEMPO #2305}
 
 
 #%% standard user input lists 

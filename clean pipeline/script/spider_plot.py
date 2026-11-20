@@ -35,7 +35,7 @@ import processing_functions as prc
 
 #short_labels=['NH2-14','NH2-14N']
 
-def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1'], absolute= False, norm_to= -3):
+def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1'], absolute= False, norm_to= -3,target_conc=2.0,bl_mode='old'):
 
     Fig_spider,axe_spider= subplots(2,2,figsize=(14,14),subplot_kw={'projection': 'polar'}) 
     axes_spider=axe_spider.reshape(-1)
@@ -91,7 +91,12 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
             
             
             #exception until r1 is correctly implemented  -> updated!
-            if polygon==' T1': 
+            
+            if polygon==' E_max':
+                ex_dF=ex.get_Emax(radical,bl_mode='old')
+                values.append(ex_dF['values'].loc[target_conc])
+                
+            elif polygon==' T1': 
                 
                 #exception until r1 is correctly implemented  !!!!
                 #values.append(1/(ex_dF['values'].loc[2.0]))
@@ -99,7 +104,7 @@ def spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1
                 r1,T1_0,perc= prc.get_r(radical,concs,ex_dF['values'])
                 values.append(r1)
                 
-            else: values.append(ex_dF['values'].loc[2.0])
+            else: values.append(ex_dF['values'].loc[target_conc])
             
             
             k=k+1

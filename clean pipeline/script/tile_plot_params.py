@@ -70,30 +70,18 @@ def tile_plot_raw(radicals,parameters,passed_colors,old=True,bl_mode='old'):
         
         for radical in radicals:
             
-            
-            # some conditions that were not ruled globally yet.. 
-            
-            if radical.find('old')!=-1 and bl_mode!= 'off':
-                blc= True
-               # print( f"baseline_correction enabled for {radical}")
-                
-                if old==False: continue # omits old data
-            else: blc =False
-            #
-            if bl_mode=='on': blc=True 
-            
-            
-            #extracts data from multiple csv_files into one single iterable dataFrame: ex_dF
-        
-            fnames,conc=ex.load_files(radical)# loads the file
-            ex_dF= ex.extract_cwise(param,conc,fnames,out=False,bl_corr=blc)
-            concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
+            filenames,conc_ul=ex.load_files(radical)
             
         
             
-            
-            
-                
+            if param== ' E_max': 
+                ex_dF=ex.get_Emax(radical,bl_mode=bl_mode)
+                concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
+            else:
+                #extracts data from multiple csv_files into one single iterable dataFrame: ex_dF
+                ex_dF=ex.extract_cwise(param,conc_ul,filenames,out=False,bl_corr='on',save=False,signal=False)
+                concs=list(ex_dF.index)# This overwrites concs with the sorted list matching the dataframe order.
+              
             # adds a fitted line-> currently deactivated
             # if param==' P1/2':
             #     x_opt,y_opt,fit_params,errors,perc,rsquare=prc.lin_fit(ex_dF['values'].index,ex_dF['values'])
@@ -211,17 +199,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
             
             ## condtions relevant only if bl_mode = 'old':
               
-            if radical.find('old')!=-1 and bl_mode!= 'off':
-                blc= True
-               # print( f"baseline_correction enabled for {radical}")
-            else: blc =False
-            
-            #if radical.find('old')!=-1 and old==False: continue # omits old data
-            if bl_mode=='on': blc=True
-            else: pass
-            
-
-            
+               
             if param == 'r1':
         
                 
@@ -300,7 +278,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
                     T1_0_exp= ldp.T10_values[radical]
                 #else: continue
                 
-                ex_dF2=ex.extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc)
+                ex_dF2=ex.get_Emax(radical,bl_mode=bl_mode)
                 E_max=list(ex_dF2['values'])
                 smz=cf.get_smaxzeta(T1s,T1_0_exp,E_max,T10_mean=False,radicals=radicals) #<- T10_mean must be activated here!
                 
@@ -341,7 +319,7 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
             
             else: print( 'parameter can not be handled' )
             
-            ex_dF= ex.extract_cwise(' E_max', conc_ul, fnames,out=False,bl_corr=blc)   
+            ex_dF= ex.get_Emax(radical,bl_mode=bl_mode)
             concs=list(ex_dF.index)
             E_max_values=list(ex_dF['values'])
             
@@ -392,10 +370,10 @@ def tile_plot_prc(radicals,passed_colors,prc_params,short_labels= None,abb=None,
     all_axes[barloc[0]].bar(bar_dF.index, bar_dF['r1s'], color=bar_dF['colors'])
     all_axes[barloc[1]].bar(bar_dF.index, bar_dF['r2s'], color=bar_dF['colors'])
     
-    if 'H-14' in radicals:
+    if 'H-14' in bar_dF.index:
         all_axes[barloc[0]].axhline(bar_dF['r1s']['H-14'],color= bar_dF['colors']['H-14'])
         all_axes[barloc[1]].axhline(bar_dF['r2s']['H-14'],color= bar_dF['colors']['H-14'])
-    elif 'H-14o' in radicals:
+    elif 'H-14o' in bar_dF.index:
         all_axes[barloc[0]].axhline(bar_dF['r1s']['H-14o'],color= bar_dF['colors']['H-14o'])
         all_axes[barloc[1]].axhline(bar_dF['r2s']['H-14o'],color= bar_dF['colors']['H-14o'])
     else: print('reference radical in T1/T2 bar plots could not be generated. H-14 or H-14o were not found. deactivate this line to get default error log' )

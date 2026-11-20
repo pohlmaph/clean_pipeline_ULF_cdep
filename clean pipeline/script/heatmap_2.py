@@ -13,7 +13,7 @@ import bin_extraction as ex
 import processing_functions as prc
 
 def generate_dF(radicals, short_labels, sel_params=[' E_max', ' P1/2', ' b1', ' T1', ' T2'], 
-                norm_to=-1, exclude_rules=None, target_conc=2.0):
+                norm_to=-1, exclude_rules=None, target_conc=2.0,exclude_rad=None,bl_mode='old'):
     """
     Generate absolute and normalized DataFrames dynamically.
     
@@ -35,22 +35,32 @@ def generate_dF(radicals, short_labels, sel_params=[' E_max', ' P1/2', ' b1', ' 
         values_abs = []
         
         for radical in radicals:
-            fnames, conc = ex.load_files(radical)
-            ex_dF = ex.extract_cwise(param, conc, fnames, out=False)
+            fnames, conc_ul = ex.load_files(radical)
+            ex_dF = ex.extract_cwise(param, conc_ul, fnames,out=False,bl_corr='on')
             concs = list(ex_dF.index)
+            
             
             # Dynamic exclusion rule lookup
             exclude_val = exclude_rules.get(radical, None)
             
-            
-            if param in [' T1', ' T2']: 
-                r_val, _, _ = prc.get_r(radical, concs, ex_dF['values'], plot=False, exclude=exclude_val)
-                values_abs.append(r_val)
-            else: 
-                values_abs.append(ex_dF['values'].loc[target_conc])
+            if target_conc in concs==False:
+                print(False)
+                values_abs.append(None)
+            else:
                 
-            # if radical in ['4-Hydroxy-14N-TEMPO_old','4-Amino-14N-TEMPO_old'] and param==' E_max':
-            #     values_abs[-1]=None
+                if param in [' T1', ' T2']: 
+                    r_val, _, _ = prc.get_r(radical, concs, ex_dF['values'], plot=False, exclude=exclude_val)
+                    values_abs.append(r_val)
+                elif param == ' E_max':
+                    ex_dF=ex.get_Emax(radical,bl_mode=bl_mode)
+                    values_abs.append(ex_dF['values'].loc[target_conc])
+                else: 
+                    values_abs.append(ex_dF['values'].loc[target_conc])
+                    # print(ex_dF['values'].loc[target_conc])
+                    # print(concs)
+            if exclude_rad:
+                if radical in exclude_rad and param==' E_max':
+                    values_abs[-1]=None
         
         # Scale dynamically based on norm_to index
         baseline_val = values_abs[norm_to]

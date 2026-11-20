@@ -9,11 +9,12 @@ from matplotlib.pyplot import subplots
 import load_default_params as ldp
 import bin_extraction as ex
 import pandas as pd
+from numpy import average
 
 
-def signal_plot(radicals, old=True, bl_mode='off',number=None,**kwargs):
+def signal_plot(radicals, old=True,number=None,bl_constant=23,**kwargs):
     
-    Fig,axes=subplots(2,2,figsize=(16,9))
+    Fig,axes=subplots(2,3,figsize=(16,9))
     axes=axes.reshape(-1)
     
     #Fig.suptitle('old='+str(old)+'| bl_mode='+bl_mode)
@@ -41,6 +42,8 @@ def signal_plot(radicals, old=True, bl_mode='off',number=None,**kwargs):
         ex_dF2= ex.extract_cwise(' baseline',conc,fnames,out=False,bl_corr='off',signal=True)
         
         ex_dF3= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_corr='on',signal=True) 
+        
+        ex_dF4= ex.extract_cwise(' E_max',conc,fnames,out=False,bl_corr='constant',bl_constant=bl_constant,signal=True) 
                
         
         axes[0].errorbar(concs,ex_dF['values'],yerr= ex_dF['dev'],label=radical)
@@ -59,8 +62,14 @@ def signal_plot(radicals, old=True, bl_mode='off',number=None,**kwargs):
         
         
         axes[3].plot(concs,ex_dF2['values'],label=radical)
+        #axes[3].axhline(average(ex_dF2['values']))
         axes[3].set_ylabel('baseline')
         axes[3].set_title ('baseline')
+        
+        axes[4].errorbar(concs,ex_dF4['values'],yerr= ex_dF['dev'],label=radical)
+        axes[4].set_ylabel('E_max ')
+        axes[4].set_title(f'E_max (I normalized to constant baseline (value={bl_constant}))')
+        axes[4].set_ylim(-300,0)
         
         #dF[labels[k]]=ex_dF['values']
         

@@ -53,7 +53,7 @@ from matplotlib.pyplot import Figure
 
 #old_globserves as a central switch: automatically sets the keywords for all following functions
 
-bl_glob='old'
+bl_glob='constant'
 # 'on','off', or 'old'
 #('old' enables baseline correction only for data tagged with old in the radical name )  
 print('global baseline mode: '+ bl_glob)
@@ -80,8 +80,8 @@ radicals=ex.sort_radicals(True,False,radicals)# args: old,new,radicals
 #cp and Oxo only exist in new generation 
 
 # loads these groups in the MAIN wordspace in case you want to manually adress them
-old_radicals=ex.get_old_radicals(radicals)
-new_radicals=ex.get_new_radicals(radicals)
+#old_radicals=ex.get_old_radicals(radicals)
+#new_radicals=ex.get_new_radicals(radicals)
 
 #%% storage for code lines to remove radicals from the list
 # caution: some downstream functionalities  or T10-averaging require all radicals
@@ -98,13 +98,14 @@ custom_radicals= radicals
 
 skip_radicals= ['4-Amino-14N-TEMPO_old','4-Oxo-15N-TEMPO_old','4-Hydroxy-14N-TEMPO_old']
 #skip_radicals= ['4-Amino-15N-TEMPO', '3-Carboxy-14N-Proxyl','Oxo71-Trityl','4-Hydroxy-14N-TEMPO','4-Oxo-15N-TEMPO_3_26',]
-
+#skip_radicals=[]
 # for radical in radicals: 
 #     if radical.find('14N') !=-1:
 #         print(radicals.pop(radicals.index(radical)))
 #print("popped:",custom_radicals.pop(radicals.index('4-Hydroxy-14N-TEMPO_old')))
 
-custom_radicals=['4-Oxo-14N-TEMPO','4-Amino-15N-TEMPO','14N-TEMPO']
+#custom_radicals=['4-Oxo-14N-TEMPO','4-Amino-15N-TEMPO','14N-TEMPO']
+#radicals=['Oxo71-Trityl']
 #%%
 #radicals=custom_radicals
 print('radicals:',radicals)
@@ -112,7 +113,7 @@ print('concs:', concs )
 print('skipped: ', skip_radicals)
 #radicals=radicals
 
-#radicals=['Oxo71-Trityl']
+
 
 #print('popped out: ' + radicals.pop(-1))
     # this line can be used to delete radicals from the list by index
@@ -121,7 +122,7 @@ print('skipped: ', skip_radicals)
 
 #%% tile plot
 
-#!! caution !! T1_0_ maan was deactivated in the script!!
+#!! caution !! T1_0_ mean was deactivated in the script!!
 #fixed
 
 prc_params = ['r1','r2','r1bar','r2bar',' P1/2','cc','smaxzeta','lf']
@@ -131,7 +132,8 @@ prc_params = ['r1','r2','r1bar','r2bar',' P1/2','cc','smaxzeta','lf']
 #
 
 #plots all parameters as they are into 3x2 plot
-axes_raw=tpp.tile_plot_raw(radicals,parameters,ldp.spider_colors,old=True,bl_mode=bl_glob)
+#axes_raw=tpp.tile_plot_raw(radicals,parameters,ldp.spider_colors,old=True,bl_mode='on')
+#axes_raw[3].set_ylim(-250,0)
     # returns the axes so you can modify from the console
 
 #axes[3].set_ylim(-300,0)
@@ -168,7 +170,7 @@ short_labels=ldp.gen_short_labels(radicals,old=True)
 long_names=[radical[:-4] for radical in radicals]
 
 #short_labels=['NH2-14','NH2-15N','Oxo-14N','Oxo-15N', 'TEMPO','Hydroxy']
-spp.spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1'],norm_to=0)
+spp.spider_plots(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1'],norm_to=0,target_conc=1.0)
 #%% heatmap
 import heatmap_2 as hm
 
@@ -176,10 +178,17 @@ import heatmap_2 as hm
 #short_labels=ldp.gen_short_labels(radicals,old=True)
 
 long_names=[radical[:-4] for radical in radicals]
-dF_abs,dF_norm=hm.generate_dF(radicals,long_names,sel_params=[' E_max', ' P1/2',' b1', ' T1',' T2'], norm_to= 0,target_conc=2)
+dF_abs,dF_norm=hm.generate_dF(radicals,
+                              long_names,
+                              sel_params=[' E_max', ' P1/2',' b1', ' T1',' T2'],
+                              norm_to= 0,
+                              target_conc=1.0,
+                              exclude_rad=['4-Amino-14N-TEMPO_old','4-Hydroxy-14N-TEMPO_old'],
+                              bl_mode=bl_glob,
+                              )
 hm.plot_mosaic_heatmap(dF_abs,dF_norm,
                        absolute=True,
-                       target_conc=2,
+                       target_conc=1.0,
                        cmap="coolwarm",
                        figsize=None,#
                        show_values=True,
@@ -195,6 +204,7 @@ hm.plot_mosaic_heatmap(dF_abs,dF_norm,
 #%%horizontal heatmap
 import heatmap_horizontal as hhm
 
+# E_max: problem with baseline selecting keywords not checked here
 
 short_labels=ldp.gen_short_labels(radicals,old=True)
 dF_abs,dF_norm=hhm.generate_dF(radicals,short_labels,sel_params=[' E_max', ' P1/2',' b1', ' T1'], norm_to= -1)
@@ -213,12 +223,7 @@ import fit_cf as fcf
 
 radical_selection=['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]
 
-Fig,axe=subplots(figsize=(9,5),dpi=300)
-Fig2,axe2=subplots(figsize=(9,5),dpi=300)
-Fig2.suptitle('saturation factors')
 
-Fig3,axes3= subplots(1,3,figsize=(12,4), dpi=300,sharey=True)
-axes3=axes3.reshape(-1)
 
 passed_colors=ldp.spider_colors
 
@@ -231,12 +236,26 @@ T10_values={'4-Oxo-14N-TEMPO_old': 2787.4,#2725,
             '14N-TEMPO_old':2683.6,
             '4-Amino-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
             '4-Hydroxy-14N-TEMPO_old':2683.6,# same as TEMPO as Bp is close
-            '4-Oxo-15N-TEMPO_old':2764.5} # same as Amino-15N-TEMPO #2305}
+            '4-Oxo-15N-TEMPO_old':2764.5,
+            'Oxo71-Trityl':2787.4,
+            } # same as Amino-15N-TEMPO #2305}
 
 #alternative location, both working
 #T10_values= ldp.T10_values 
 
 c_offset_list=[0,0,0]
+
+#for bl_mode in ['constant','on','off']:
+exclude=True
+
+print(bl_mode,exclude, sep='\t')
+
+Fig,axe=subplots(figsize=(9,5),dpi=300)
+Fig2,axe2=subplots(figsize=(9,5),dpi=300)
+Fig2.suptitle('saturation factors')
+
+Fig3,axes3= subplots(1,3,figsize=(12,4), dpi=300,sharey=True)
+axes3=axes3.reshape(-1)
 
 
 for k,radical in enumerate(radical_selection): 
@@ -247,9 +266,11 @@ for k,radical in enumerate(radical_selection):
                ax2=axe2,
                ax3=axes3[k],
                Power=2,
-               bl_mode='old',
+               bl_mode=bl_mode,
+               bl_constant=23,
                radicals=radicals,
                passed_color=passed_colors[k],
+               exclude =exclude,
                guess=False,
                N_relax =False,
                x_offset=(k)*0.1,
@@ -300,6 +321,7 @@ for i,T1_0 in enumerate(numpy.linspace(2100,2400,5)):
                    fix_zeta=None,
                    label=radical+r' |$T_{1,0} = $'+str(T1_0)+' ms', )#radical+r' |$T_{1,0} = $'+str(T10_values[radical])+' ms'
  #%%
+#baseline keyword problem not adressed
 
 import fit_E_max as fem   
 
@@ -308,7 +330,7 @@ fem.fit_Emax('4-Amino-15N-TEMPO_old',isotope=15,N_relax=False)
 
 import Kais_data as Kd
 
-Kd.plot_pool_data(radicals,bl_mode='old')
+Kd.plot_pool_data(radicals,bl_mode='on')
 #%% fixed_power_plot
 
 import fixed_P_plot as fpp
@@ -362,16 +384,24 @@ for ax in axes.reshape(-1)[4:6]:
 import signal_plot as sigp
 
 #sigp.signal_plot(new_radicals, bl_mode='on')
-sigp.signal_plot(old_radicals, bl_mode='on')
+sigp.signal_plot(radicals, bl_mode='on')
 
 #%% print ex_dF for all radicals
-for radical in ['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]: #['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]: 
+
+Fig,axe= subplots(figsize=(16,9))
+
+axe.plot()
+
+for radical in radicals: #['4-Oxo-14N-TEMPO_old','4-Amino-15N-TEMPO_old','14N-TEMPO_old' ]: 
     
     fnames,concs= ex.load_files(radical)
-    dF= ex.extract_cwise(' P1/2',concs,fnames,out=False,bl_corr='on')
-    print(radical, dF['values'].loc[1.0])
+    dF= ex.extract_cwise(' E_max',concs,fnames,out=False,bl_corr='on')
+    concs=
+    #print(radical, dF['values'].loc[1.0])
     
+    axe.plot()
     
+
     # dF2=ex.extract_cwise(' T1',concs,fnames,out=False,bl_corr='on')
     # #print(dF['values'],dF2['values'])
     

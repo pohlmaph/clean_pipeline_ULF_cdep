@@ -70,6 +70,8 @@ def fit_cf(radical,
            ax2=None,
            ax3=None,
            bl_mode='old',
+           bl_constant=23,
+           exclude=True,
            radicals=None,
            passed_color='blue',
            N_relax=True,
@@ -101,27 +103,17 @@ def fit_cf(radical,
     #it has to be that way- otherwise filenames and concentrations are not aligned anymore
     # ordering happens in extract_cwise, when the values extracted from the filenames and concentrations are linked in a dataFrame
     
-    ## condtions relevant only if bl_mode = 'old':
-      
-    if radical.find('old')!=-1 and bl_mode!= 'off':
-        blc= True
-       # print( f"baseline_correction enabled for {radical}")
-    else: blc =False
     
-    #if radical.find('old')!=-1 and old==False: continue # omits old data
-    if bl_mode=='on': blc=True
-    else: pass
-    #________________________________________________________________________________
     if T1_field=='B_0':
         ex_dF= ex.extract_cwise(' T1',conc_ul,fnames,out=False)
     if T1_field=='t_hyp':
         ex_dF= ex.extract_cwise('t_hyp',conc_ul,fnames,out=False)
     concs=list(ex_dF.index)
-    print('intial concs', concs)
+   # print('intial concs', concs)
     T1s=ex_dF['values']
     #T1_0= prc.get_r(radical,concs,ex_dF['values'])[1]
     
-    ex_dF2=ex.extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc)
+    ex_dF2=ex.get_Emax(radical,bl_mode=bl_mode,bl_constant=23)
     E_max=list(ex_dF2['values'])
     
     if T10_mean==None:
@@ -130,36 +122,37 @@ def fit_cf(radical,
     smz=cf.get_smaxzeta(T1s,T10_mean,E_max,T10_mean=False,radicals=radicals)
     lf=cf.get_smaxzeta.lf
     
-    if radical== '4-Hydroxy-14N-TEMPO_old': 
-        smz=smz[:4]
-        concs=concs[:4]
-        lf=lf[:4]
-        
-    #cut values for  x mM  -> lazy hard coded implementation    
-    if radical== '14N-TEMPO_old': #or '4-Oxo-14N-TEMPO_old'
-        smz=smz[:]
-        concs=concs[:] 
-        lf=lf[:]
-        
-        smz.pop(0)
-        concs.pop(0)
-        lf.pop(0)
-    if radical== '4-Amino-15N-TEMPO_old': #or '4-Oxo-14N-TEMPO_old'
-        smz=smz[1:]
-        concs=concs[1:] 
-        lf=lf[1:]
-        
-        # append fictional data points to simulate impact
-        # smz.append(0.3)
-        # concs.append(6.0)
-        # lf.append(lf[-1])
-    else: 
-         
-          smz=smz[:]
-          concs=concs[:]    
-          lf=lf[:]
+    if exclude==True:
+        if radical== '4-Hydroxy-14N-TEMPO_old': 
+            smz=smz[:4]
+            concs=concs[:4]
+            lf=lf[:4]
+            
+        #cut values for  x mM  -> lazy hard coded implementation    
+        elif radical== '14N-TEMPO_old': #or '4-Oxo-14N-TEMPO_old'
+            smz=smz[1:-1]
+            concs=concs[1:-1] 
+            lf=lf[1:-1]
+            
+            # smz.pop(0)
+            # concs.pop(0)
+            # lf.pop(0)
+        elif radical== '4-Amino-15N-TEMPO_old': #or '4-Oxo-14N-TEMPO_old'
+            smz=smz[1:]
+            concs=concs[1:] 
+            lf=lf[1:]
+            
+           # # append fictional data points to simulate impact
+           #  smz.append(0.3)
+           #  concs.append(6.0)
+           #  lf.append(lf[-1])
+        else: 
+             
+              smz=smz[:]
+              concs=concs[:]    
+              lf=lf[:]
           
-    print('final concs', concs) 
+    #print('final concs', concs) 
     param=' '
     
     #raw data
@@ -200,11 +193,11 @@ def fit_cf(radical,
     
     params,pcov=curve_fit(predict_smaxzeta, concs, smz,p0=guess,bounds=(lower_bounds,upper_bounds))
         
-    print('params',params,sep='\t')
+    #print('params',params,sep='\t')
     errors= np.sqrt(np.diag(pcov))
     #(errors)
     perc= errors/params*100
-    print('perc',perc,sep='\t')
+    #print('perc',perc,sep='\t')
     
     
     
@@ -245,8 +238,8 @@ def fit_cf(radical,
     
     
     
-    # ax.text(2,0.15,bl_mode+'\n'+'N_relax='+str(N_relax)+'\nT1_field='+str(T1_field),fontsize=6)
-    # ax2.text(2,0.4,bl_mode+'\n'+'N_relax='+str(N_relax)+'\nT1_field='+str(T1_field),fontsize=6)
+    ax.text(2,0.15,bl_mode+'\n'+str(exclude)+'\n'+'N_relax='+str(N_relax)+'\nT1_field='+str(T1_field),fontsize=6)
+    ax2.text(2,0.4,bl_mode+'\n'+str(exclude)+'\n'+'N_relax='+str(N_relax)+'\nT1_field='+str(T1_field),fontsize=6)
     
     
     #______

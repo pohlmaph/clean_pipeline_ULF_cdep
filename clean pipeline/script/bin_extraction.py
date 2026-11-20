@@ -128,7 +128,7 @@ def get_pnames(filename):
 
     
     
-def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal=True):
+def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal=True,bl_constant=23):
     #combines values and errors, but only for one parameter at a time
     #args= locals()
     
@@ -170,7 +170,9 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal
     # only assign column names if matching
     if len(ex_dF.columns) == 5:
         ex_dF.columns = ['values', 'ubound', 'lbound', 'dev', 'perc']
-    #___________!!!_____________  
+   
+    
+   #___________!!!_____________  
     
     
     ### corrections 
@@ -189,10 +191,14 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal
              
             ex_dF['values'] = [value * b / av for value, b in zip(ex_dF['values'], bls)]
     
-        if bl_corr=='constant':
-            c=14
-             
+        elif bl_corr=='constant':
+            
+            c=bl_constant
             ex_dF['values'] = [value * b / c for value, b in zip(ex_dF['values'], bls)]
+            
+        elif bl_corr=='off': pass
+    
+        else: print(f'an unmatching keyword bl_corr was passed:bl_corr= {bl_corr}')
         
         if signal== True:
             
@@ -206,6 +212,27 @@ def extract_cwise(pname,concs,filenames,out=False,bl_corr='on',save=False,signal
     
     if out==True: print(ex_dF)
     
+    
+    return ex_dF
+    
+
+def get_Emax(radical,bl_mode='old',bl_constant=23):
+    
+    ## condtions relevant only if bl_mode = 'old':
+        
+    if bl_mode == 'old':
+      
+        if radical.find('old')!=-1:
+            blc= 'on'
+           # print( f"baseline_correction enabled for {radical}")
+        else: blc ='off'
+    
+    elif bl_mode=='on': blc='on'
+    elif bl_mode=='off': blc='off'
+    elif bl_mode== 'constant': blc= 'constant'
+    else: print(f'unknown kw bl_mode={bl_mode} was passed')
+    fnames,conc_ul=load_files(radical)# loads the file
+    ex_dF= extract_cwise(' E_max',conc_ul,fnames,out=False,bl_corr=blc,bl_constant=bl_constant)
     
     return ex_dF
     
